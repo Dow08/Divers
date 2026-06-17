@@ -1,17 +1,17 @@
 # Divers
 
-Projets personnels varies, outils du quotidien et travaux en pause.
+Projets personnels variés, outils du quotidien et travaux en pause.
 
 ## Projets
 
 ### nexus-conformite
-Projet de conformite — dashboard et documentation reglementaire.
+Projet de conformité — dashboard et documentation réglementaire.
 
 ### outils-divers
 Outils personnels et scripts utilitaires.
 
 ### trp-site-ami
-Site web realise pour un ami.
+Site web réalisé pour un ami.
 
 ### sortia-app
 Application mobile — projet en pause.
