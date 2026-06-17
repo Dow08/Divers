@@ -1,0 +1,82 @@
+{
+  "name": "WF-01 — Backup Auto Hebdomadaire",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 3 * * 0" }]
+        }
+      },
+      "id": "cron-backup",
+      "name": "Cron — Dimanche 3h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.N8N_BASE_URL }}/api/v1/workflows",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "get-workflows",
+      "name": "Récupérer workflows N8N",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": { "httpHeaderAuth": { "id": "n8n-api-key", "name": "N8N API Key" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst date = new Date().toISOString().slice(0,10);\nreturn [{ json: { filename: `nexus-backup-${date}.json`, content: JSON.stringify(data, null, 2) } }];"
+      },
+      "id": "prepare-backup",
+      "name": "Préparer fichier backup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "name": "={{ $json.filename }}",
+        "driveId": { "__rl": true, "mode": "list", "value": "My Drive" },
+        "folderId": { "__rl": true, "mode": "list", "value": "NEXUS-BACKUPS" },
+        "binaryData": false,
+        "fileContent": "={{ $json.content }}",
+        "options": { "mimeType": "application/json" }
+      },
+      "id": "google-drive-upload",
+      "name": "Upload Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [900, 300],
+      "credentials": { "googleDriveOAuth2Api": { "id": "google-drive-creds", "name": "Google Drive NEXUS" } }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "✅ *Backup NEXUS effectué*\n📅 {{ $now.toFormat('dd/MM/yyyy HH:mm') }}\n📁 Fichier: `{{ $('Préparer fichier backup').item.json.filename }}`\n✔️ Sauvegardé sur Google Drive",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "telegram-backup-ok",
+      "name": "Telegram — Backup OK",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1120, 300],
+      "credentials": { "telegramApi": { "id": "telegram-bot-creds", "name": "NEXUS Bot Telegram" } }
+    }
+  ],
+  "connections": {
+    "Cron — Dimanche 3h": { "main": [[{ "node": "Récupérer workflows N8N", "type": "main", "index": 0 }]] },
+    "Récupérer workflows N8N": { "main": [[{ "node": "Préparer fichier backup", "type": "main", "index": 0 }]] },
+    "Préparer fichier backup": { "main": [[{ "node": "Upload Google Drive", "type": "main", "index": 0 }]] },
+    "Upload Google Drive": { "main": [[{ "node": "Telegram — Backup OK", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "NEXUS" }, { "name": "Infrastructure" }],
+  "meta": { "description": "Backup hebdomadaire automatique tous les dimanches à 3h. Sauvegarde les workflows N8N sur Google Drive et notifie via Telegram." }
+}

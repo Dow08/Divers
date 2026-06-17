@@ -1,0 +1,29 @@
+{
+  "skill_name": "cyber-course-builder",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Je viens de prendre des notes sur le SQL Injection pendant une formation pentest. Voici le contenu brut :\n\n'SQL Injection (SQLi) est une vulnérabilité web où un attaquant insère du code SQL malveillant dans les champs d'entrée d'une application. Cela permet d'accéder à la base de données, de modifier des données, ou même d'exécuter du code système.\n\nCela fonctionne quand l'application ne valide pas les entrées utilisateur. Les impact peuvent être graves : vol de données, suppression de données, compromission du serveur.\n\nCommandes de test :\n- sqlmap -u \"http://target.com/page?id=1\" -dbs\n- Union-based: \" UNION SELECT NULL,database(),user() --\n- Time-based blind: \" AND SLEEP(5) --\n\nExemple concret : Un formulaire de login prend en entrée username et password. Si on entre \"admin' --\" comme username, la requête SQL devient : SELECT * FROM users WHERE username=\"admin\" -- et la condition password est ignorée.\n\nRisques : vol de données sensibles, manipulation de données, accès administrateur, exfiltration de bases de données'\n\nStructure ceci en cours et sauvegarde dans Notion.",
+      "expected_output": "A fully structured cybersecurity course on SQL Injection saved to Notion with all 9 sections: title, context, definition, key points, functionality, commands, concrete use case, risks, and quick summary. Quality verification report showing all sections are complete and properly formatted.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Crée un cours sur 'Privilege Escalation Linux' basé sur ce contenu :\n\nLa privilege escalation est le processus d'obtenir des droits plus élevés qu'actuellement possédés. Sur Linux, passer de user normal à root est l'objectif principal.\n\nMéthodes communes :\n1. Exploiter les vulnérabilités du noyau (kernel exploits)\n2. Abuser de sudo mal configuré\n3. Exploiter les services ou applications vulnérables\n4. Trouver des fichiers avec setuid activé\n5. Escalade via cron jobs\n\nCommandes utiles :\nid - voir les permissions actuelles\nsudo -l - lister ce qu'on peut faire avec sudo\nfind / -perm -4000 2>/dev/null - trouver fichiers setuid\nuname -a - voir la version du kernel\n\nCela s'utilise en pentest post-exploitation, quand on a un shell initial mais on veut accéder au root.\n\nRisques : si on rate, on peut crash le système ou créer des traces détectables.",
+      "expected_output": "Structured course on Linux Privilege Escalation with proper formatting, code blocks for commands, clear sections, and Notion integration with 'blue team' or 'pentest' domain tagging. Quality verification confirms all 9 sections present and properly formatted.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "J'ai trouvé cet article sur le phishing et je veux le structurer en cours : \"Le phishing est une technique d'ingénierie sociale où l'attaquant se fait passer pour une entité de confiance pour tromper la victime. Les vecteurs incluent email, SMS, appels téléphoniques, et messages de réseaux sociaux.\n\nTypes principaux : spear-phishing (ciblé), whaling (dirigés vers executives), vishing (appels), smishing (SMS).\n\nComment ça fonctionne : envoi d'un message trompeur, lien vers un site fake, vol de credentials ou installation de malware.\n\nSe défendre : formation des utilisateurs, authentification multi-facteurs, filtrage des emails, vérification des URLs.\n\nC'est critique pour le defensive team (blue team) car le phishing est le point d'entrée numéro 1 des attaques.\"\n\nAjoute aussi que le phishing peut être combiné avec l'ingénierie sociale pour être plus efficace, et que les taux de succès varient de 5% à 30% selon la qualité du phishing.\n\nSauvegarde dans Notion.",
+      "expected_output": "Comprehensive course on Phishing saved to Notion with all required sections properly structured. Should include concrete examples, defense techniques, success rates mentioned by user, and tagged appropriately for defensive/blue team operations. Quality report shows completion of all verification checks.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "Structure ce contenu fragmentaire en cours cybersécurité :\n\nSujet: Reconnaissance passive\n- C'est la première étape du pentest\n- On collecte de l'info sans interagir avec la cible\n- Outils: Google dorking, Shodan, theHarvester, OSINT tools\n- Google dork: site:example.com inurl:admin\n- Shodan: on peut trouver les services exposés d'une IP\n- Métier: pentest, threat intelligence, red team\n- Risques: les outils peuvent être détectés/monitored, il faut faire attention à pas révéler ses intentions\n- Résumé: phase d'info gathering en passif, critique pour préparer une attaque\n\nCrée un cours structuré et ajoute dans Notion.",
+      "expected_output": "Well-structured course on Passive Reconnaissance with all 9 sections properly filled in, commands in code blocks, clear examples of reconnaissance tools and Google dorking syntax. Notion page saved with proper metadata for pentest domain. Quality verification confirms no sections missing.",
+      "files": []
+    }
+  ]
+}

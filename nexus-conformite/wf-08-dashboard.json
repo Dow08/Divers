@@ -1,0 +1,168 @@
+{
+  "name": "WF-08 — DASHBOARD HEBDO",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "0 18 * * 5"
+      },
+      "id": "2c3d4e5f-6g7h-8i9j-0k1l-2m3n4o5p6q7r",
+      "name": "Cron Friday 6PM",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.stripe.com/v1/charges?created[gte]={{ $now.subtract(7, 'days').unix() }}&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "options": {}
+      },
+      "id": "3d4e5f6g-7h8i-9j0k-1l2m-3n4o5p6q7r8s",
+      "name": "Get Stripe Revenue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [300, 150]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/{{ $env.GOOGLE_SHEETS_ID }}/values/gumroad-sales",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "options": {}
+      },
+      "id": "4e5f6g7h-8i9j-0k1l-2m3n-4o5p6q7r8s9t",
+      "name": "Get Gumroad Sales",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.beehiiv.com/v2/publications/{{ $env.BEEHIIV_PUB_ID }}/stats",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "options": {}
+      },
+      "id": "5f6g7h8i-9j0k-1l2m-3n4o-5p6q7r8s9t0u",
+      "name": "Get Beehiiv Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [300, 450]
+    },
+    {
+      "parameters": {
+        "expression": "{\n  \"stripe_total\": $json[0].data.reduce((sum, charge) => sum + (charge.amount || 0), 0) / 100,\n  \"gumroad_total\": $json[1].values.reduce((sum, row) => sum + parseFloat(row[2] || 0), 0),\n  \"new_subscribers\": $json[2].new_subscribers || 0,\n  \"week_number\": $now.format('WW')\n}",
+        "options": {}
+      },
+      "id": "6g7h8i9j-0k1l-2m3n-4o5p-6q7r8s9t0u1v",
+      "name": "Aggregate Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [550, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "{{ $env.TELEGRAM_CHAT_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "📊 Bilan semaine S{{ $json.week_number }}: {{ ($json.stripe_total + $json.gumroad_total).toFixed(2) }}€ — {{ $json.new_subscribers }} nouveaux abonnés"
+            }
+          ]
+        }
+      },
+      "id": "7h8i9j0k-1l2m-3n4o-5p6q-7r8s9t0u1v2w",
+      "name": "Telegram Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [800, 300]
+    }
+  ],
+  "connections": {
+    "2c3d4e5f-6g7h-8i9j-0k1l-2m3n4o5p6q7r": {
+      "main": [
+        [
+          {
+            "node": "3d4e5f6g-7h8i-9j0k-1l2m-3n4o5p6q7r8s",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "4e5f6g7h-8i9j-0k1l-2m3n-4o5p6q7r8s9t",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "5f6g7h8i-9j0k-1l2m-3n4o-5p6q7r8s9t0u",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3d4e5f6g-7h8i-9j0k-1l2m-3n4o5p6q7r8s": {
+      "main": [
+        [
+          {
+            "node": "6g7h8i9j-0k1l-2m3n-4o5p-6q7r8s9t0u1v",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4e5f6g7h-8i9j-0k1l-2m3n-4o5p6q7r8s9t": {
+      "main": [
+        [
+          {
+            "node": "6g7h8i9j-0k1l-2m3n-4o5p-6q7r8s9t0u1v",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5f6g7h8i-9j0k-1l2m-3n4o-5p6q7r8s9t0u": {
+      "main": [
+        [
+          {
+            "node": "6g7h8i9j-0k1l-2m3n-4o5p-6q7r8s9t0u1v",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6g7h8i9j-0k1l-2m3n-4o5p-6q7r8s9t0u1v": {
+      "main": [
+        [
+          {
+            "node": "7h8i9j0k-1l2m-3n4o-5p6q-7r8s9t0u1v2w",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveDataExecution": "all",
+    "saveManualExecution": true,
+    "callerPolicy": "owner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "1"
+}

@@ -1,0 +1,194 @@
+{
+  "name": "WF-02 — Veille Législative Quotidienne",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 7 * * *" }] }
+      },
+      "id": "cron-veille",
+      "name": "Cron — Quotidien 7h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.legifrance.gouv.fr/rss/jorf.xml",
+        "options": {}
+      },
+      "id": "rss-jo",
+      "name": "RSS — Journal Officiel",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [460, 160]
+    },
+    {
+      "parameters": {
+        "url": "https://www.cnil.fr/fr/flux-rss",
+        "options": {}
+      },
+      "id": "rss-cnil",
+      "name": "RSS — CNIL",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.ssi.gouv.fr/feed",
+        "options": {}
+      },
+      "id": "rss-anssi",
+      "name": "RSS — ANSSI",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [460, 440]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "merge-rss",
+      "name": "Fusionner sources RSS",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.title + ' ' + ($json.content || '') }}",
+              "rightValue": "facturation|électronique|NIS2|RGPD|comptabilité|conformité|PME|TPE|numérique|cyber|données personnelles",
+              "operator": { "type": "string", "operation": "regex" }
+            }
+          ]
+        }
+      },
+      "id": "filter-keywords",
+      "name": "Filtre mots-clés conformité",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nif (items.length === 0) return [{ json: { hasResults: false } }];\n\nconst articles = items.slice(0, 5).map(i => `• ${i.json.title}`).join('\\n');\nreturn [{ json: { hasResults: true, count: items.length, articles, firstItem: items[0].json } }];"
+      },
+      "id": "prepare-summary",
+      "name": "Préparer résumé",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            { "leftValue": "={{ $json.hasResults }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }
+          ]
+        }
+      },
+      "id": "check-results",
+      "name": "Y a-t-il des résultats ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "model": "claude-haiku-4-5-20251001",
+        "messages": {
+          "values": [
+            {
+              "content": "Tu es un expert en réglementation française pour TPE/PME. Résume en 3 phrases maximum cet article réglementaire de façon claire et actionnable pour un chef d'entreprise. Titre: {{ $('Préparer résumé').item.json.firstItem.title }}. Contenu: {{ $('Préparer résumé').item.json.firstItem.content?.slice(0, 500) || 'Pas de contenu disponible' }}. Réponds en français, 3 phrases max.",
+              "role": "user"
+            }
+          ]
+        },
+        "options": { "maxTokens": 150 }
+      },
+      "id": "claude-resume",
+      "name": "Claude Haiku — Résumé",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [1560, 200],
+      "credentials": { "anthropicApi": { "id": "anthropic-api-creds", "name": "Claude API NEXUS" } }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "🚨 *Veille NEXUS — {{ $now.toFormat('dd/MM/yyyy') }}*\n\n📰 *{{ $('Préparer résumé').item.json.count }} nouveaux articles* correspondant à nos mots-clés :\n\n{{ $('Préparer résumé').item.json.articles }}\n\n💡 *Résumé IA :*\n{{ $json.text || 'Résumé indisponible' }}\n\n👉 Brouillon article WP créé — à valider",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "telegram-veille",
+      "name": "Telegram — Alerte Veille",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1780, 200],
+      "credentials": { "telegramApi": { "id": "telegram-bot-creds", "name": "NEXUS Bot Telegram" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WORDPRESS_URL }}/wp-json/wp/v2/posts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "title", "value": "={{ '[VEILLE] ' + $('Préparer résumé').item.json.firstItem.title }}" },
+            { "name": "content", "value": "={{ $('Claude Haiku — Résumé').item.json.text || 'Contenu à compléter' }}" },
+            { "name": "status", "value": "draft" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wp-draft",
+      "name": "WP — Créer brouillon article",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 360],
+      "credentials": { "httpHeaderAuth": { "id": "wp-api-key", "name": "WordPress API NEXUS" } }
+    }
+  ],
+  "connections": {
+    "Cron — Quotidien 7h": {
+      "main": [
+        [
+          { "node": "RSS — Journal Officiel", "type": "main", "index": 0 },
+          { "node": "RSS — CNIL", "type": "main", "index": 0 },
+          { "node": "RSS — ANSSI", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "RSS — Journal Officiel": { "main": [[{ "node": "Fusionner sources RSS", "type": "main", "index": 0 }]] },
+    "RSS — CNIL": { "main": [[{ "node": "Fusionner sources RSS", "type": "main", "index": 1 }]] },
+    "RSS — ANSSI": { "main": [[{ "node": "Fusionner sources RSS", "type": "main", "index": 2 }]] },
+    "Fusionner sources RSS": { "main": [[{ "node": "Filtre mots-clés conformité", "type": "main", "index": 0 }]] },
+    "Filtre mots-clés conformité": { "main": [[{ "node": "Préparer résumé", "type": "main", "index": 0 }]] },
+    "Préparer résumé": { "main": [[{ "node": "Y a-t-il des résultats ?", "type": "main", "index": 0 }]] },
+    "Y a-t-il des résultats ?": {
+      "main": [
+        [{ "node": "Claude Haiku — Résumé", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Claude Haiku — Résumé": {
+      "main": [
+        [
+          { "node": "Telegram — Alerte Veille", "type": "main", "index": 0 },
+          { "node": "WP — Créer brouillon article", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "NEXUS" }, { "name": "Veille" }],
+  "meta": { "description": "Surveille quotidiennement à 7h les flux RSS officiels (JO, CNIL, ANSSI), filtre par mots-clés conformité, génère un résumé Claude Haiku et crée un brouillon WordPress + alerte Telegram." }
+}

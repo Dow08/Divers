@@ -1,0 +1,102 @@
+{
+  "name": "WF-08 — Dashboard Hebdomadaire Synthèse",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 18 * * 5" }] }
+      },
+      "id": "cron-dashboard",
+      "name": "Cron — Vendredi 18h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "list",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{ $env.GOOGLE_SHEETS_ID }}" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Revenus" },
+        "filtersUI": {},
+        "options": { "returnFirstMatch": false }
+      },
+      "id": "get-revenus",
+      "name": "Récupérer revenus semaine",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [460, 160],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "google-sheets-creds", "name": "Google Sheets NEXUS" } }
+    },
+    {
+      "parameters": {
+        "operation": "list",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{ $env.GOOGLE_SHEETS_ID }}" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Ventes" },
+        "filtersUI": {},
+        "options": { "returnFirstMatch": false }
+      },
+      "id": "get-ventes",
+      "name": "Récupérer ventes Gumroad",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [460, 300],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "google-sheets-creds", "name": "Google Sheets NEXUS" } }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.beehiiv.com/v2/publications/{{ $env.BEEHIIV_PUBLICATION_ID }}/subscriptions?limit=1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "get-beehiiv-stats",
+      "name": "Récupérer stats Beehiiv",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 440],
+      "credentials": { "httpHeaderAuth": { "id": "beehiiv-api-key", "name": "Beehiiv API NEXUS" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Revenus Stripe cette semaine\nconst revenus = $('Récupérer revenus semaine').all();\nconst sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;\nconst recentRevenus = revenus.filter(r => {\n  try { return new Date(r.json.date).getTime() > sevenDaysAgo; } catch { return false; }\n});\nconst totalRevenus = recentRevenus.reduce((sum, r) => sum + parseFloat(r.json.montant || 0), 0);\n\n// Ventes Gumroad cette semaine\nconst ventes = $('Récupérer ventes Gumroad').all();\nconst recentVentes = ventes.filter(v => {\n  try { return new Date(v.json.date).getTime() > sevenDaysAgo; } catch { return false; }\n});\nconst totalVentes = recentVentes.reduce((sum, v) => sum + parseFloat(v.json.montant || 0), 0);\n\n// Stats Beehiiv\nconst beehiivData = $('Récupérer stats Beehiiv').first().json;\nconst totalAbonnes = beehiivData.total_results || 0;\n\n// Total\nconst totalSemaine = totalRevenus + totalVentes;\nconst weekNum = Math.ceil(new Date().getDate() / 7);\n\nreturn [{\n  json: {\n    totalSemaine: totalSemaine.toFixed(2),\n    revenus: totalRevenus.toFixed(2),\n    ventesGumroad: totalVentes.toFixed(2),\n    nbVentes: recentVentes.length,\n    nbPaiements: recentRevenus.length,\n    totalAbonnes,\n    semaine: `S${weekNum}`,\n    emoji: totalSemaine > 500 ? '🚀' : totalSemaine > 100 ? '📈' : '🌱'\n  }\n}];"
+      },
+      "id": "compute-bilan",
+      "name": "Calculer bilan hebdo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "={{ $json.emoji }} *BILAN NEXUS — {{ $json.semaine }}*\n\n💶 *Total semaine :* {{ $json.totalSemaine }}€\n├ Stripe/Abonnements : {{ $json.revenus }}€ ({{ $json.nbPaiements }} paiements)\n└ Gumroad : {{ $json.ventesGumroad }}€ ({{ $json.nbVentes }} ventes)\n\n📧 *Newsletter :* {{ $json.totalAbonnes }} abonnés au total\n\n📊 *Dashboard complet :*\nhttps://lookerstudio.google.com\n\n_Bonne semaine Dow ! 💪_",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "telegram-bilan",
+      "name": "Telegram — Bilan hebdo",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [900, 300],
+      "credentials": { "telegramApi": { "id": "telegram-bot-creds", "name": "NEXUS Bot Telegram" } }
+    }
+  ],
+  "connections": {
+    "Cron — Vendredi 18h": {
+      "main": [
+        [
+          { "node": "Récupérer revenus semaine", "type": "main", "index": 0 },
+          { "node": "Récupérer ventes Gumroad", "type": "main", "index": 0 },
+          { "node": "Récupérer stats Beehiiv", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Récupérer revenus semaine": { "main": [[{ "node": "Calculer bilan hebdo", "type": "main", "index": 0 }]] },
+    "Récupérer ventes Gumroad": { "main": [[{ "node": "Calculer bilan hebdo", "type": "main", "index": 1 }]] },
+    "Récupérer stats Beehiiv": { "main": [[{ "node": "Calculer bilan hebdo", "type": "main", "index": 2 }]] },
+    "Calculer bilan hebdo": { "main": [[{ "node": "Telegram — Bilan hebdo", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "NEXUS" }, { "name": "Dashboard" }],
+  "meta": { "description": "Chaque vendredi à 18h : agrège revenus Stripe + ventes Gumroad + stats Beehiiv de la semaine. Envoie un bilan synthétique complet via Telegram." }
+}

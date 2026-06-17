@@ -1,0 +1,180 @@
+{
+  "name": "WF-09 — Cold Email B2B RGPD-Conforme",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Déclenchement Manuel (par Dow)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "list",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{ $env.GOOGLE_SHEETS_ID }}" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Prospects" },
+        "filtersUI": {
+          "values": [
+            { "lookupColumn": "statut", "lookupValue": "A contacter" }
+          ]
+        },
+        "options": { "returnFirstMatch": false }
+      },
+      "id": "get-prospects",
+      "name": "Récupérer prospects à contacter",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [460, 300],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "google-sheets-creds", "name": "Google Sheets NEXUS" } }
+    },
+    {
+      "parameters": {
+        "batchSize": 50,
+        "options": {}
+      },
+      "id": "split-batch",
+      "name": "Limiter à 50/jour (Brevo gratuit)",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEquals" }
+            },
+            {
+              "leftValue": "={{ $json.optout }}",
+              "rightValue": "OUI",
+              "operator": { "type": "string", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "check-optout",
+      "name": "Vérifier opt-out + email valide",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "model": "claude-haiku-4-5-20251001",
+        "messages": {
+          "values": [
+            {
+              "content": "Rédige un cold email B2B professionnel et bref (max 120 mots) en français pour contacter {{ $json.prenom || '' }} {{ $json.nom }} de {{ $json.entreprise }}, {{ $json.secteur }}.\n\nObjet de l'email : les inviter à s'inscrire gratuitement à la newsletter NEXUS CONFORMITÉ pour recevoir des alertes sur les obligations réglementaires 2026 (facturation électronique, NIS2, RGPD).\n\nTon : professionnel mais direct. Personnalise avec le secteur {{ $json.secteur }}.\nTermine avec : 'S'inscrire gratuitement : https://nexusconformite.fr/newsletter'\n\nN'inclus PAS de signature, juste le corps du mail. Inclure une phrase sur le lien de désinscription en fin de message.",
+              "role": "user"
+            }
+          ]
+        },
+        "options": { "maxTokens": 200 }
+      },
+      "id": "claude-email-content",
+      "name": "Claude Haiku — Rédiger email personnalisé",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [1120, 300],
+      "credentials": { "anthropicApi": { "id": "anthropic-api-creds", "name": "Claude API NEXUS" } }
+    },
+    {
+      "parameters": {
+        "fromEmail": "contact@nexusconformite.fr",
+        "fromName": "NEXUS CONFORMITÉ",
+        "toEmail": "={{ $('Vérifier opt-out + email valide').item.json.email }}",
+        "subject": "={{ $('Vérifier opt-out + email valide').item.json.secteur }} — Conformité réglementaire 2026 : êtes-vous prêt ?",
+        "emailType": "text",
+        "message": "={{ $json.text }}\n\n---\nSi vous ne souhaitez plus recevoir nos messages, répondez 'STOP' à cet email ou cliquez ici : https://nexusconformite.fr/desabonnement?email={{ $('Vérifier opt-out + email valide').item.json.email }}\nNEXUS CONFORMITÉ — Hub réglementaire TPE/PME France"
+      },
+      "id": "send-cold-email",
+      "name": "Brevo SMTP — Envoyer cold email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1340, 300],
+      "credentials": { "smtp": { "id": "brevo-smtp-creds", "name": "Brevo SMTP NEXUS" } }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{ $env.GOOGLE_SHEETS_ID }}" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Prospects" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "statut": "Email envoyé",
+            "date_contact": "={{ new Date().toLocaleDateString('fr-FR') }}",
+            "sequence": "J0"
+          },
+          "matchingColumns": ["email"]
+        },
+        "options": {}
+      },
+      "id": "update-prospect-status",
+      "name": "Sheets — Mettre à jour statut",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1560, 300],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "google-sheets-creds", "name": "Google Sheets NEXUS" } }
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 10 * * *" }] }
+      },
+      "id": "cron-relance-j3",
+      "name": "Cron — Vérif relances J+3",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 600]
+    },
+    {
+      "parameters": {
+        "operation": "list",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{ $env.GOOGLE_SHEETS_ID }}" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Prospects" },
+        "filtersUI": {
+          "values": [
+            { "lookupColumn": "statut", "lookupValue": "Email envoyé" },
+            { "lookupColumn": "sequence", "lookupValue": "J0" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-prospects-j3",
+      "name": "Prospects à relancer (J+3)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [460, 600],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "google-sheets-creds", "name": "Google Sheets NEXUS" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prospects = $input.all();\nconst threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;\nreturn prospects.filter(p => {\n  try {\n    const contactDate = new Date(p.json.date_contact.split('/').reverse().join('-')).getTime();\n    return contactDate <= threeDaysAgo;\n  } catch { return false; }\n});"
+      },
+      "id": "filter-j3-due",
+      "name": "Filtrer prospects J+3 échus",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 600]
+    }
+  ],
+  "connections": {
+    "Déclenchement Manuel (par Dow)": { "main": [[{ "node": "Récupérer prospects à contacter", "type": "main", "index": 0 }]] },
+    "Récupérer prospects à contacter": { "main": [[{ "node": "Limiter à 50/jour (Brevo gratuit)", "type": "main", "index": 0 }]] },
+    "Limiter à 50/jour (Brevo gratuit)": { "main": [[{ "node": "Vérifier opt-out + email valide", "type": "main", "index": 0 }]] },
+    "Vérifier opt-out + email valide": { "main": [[{ "node": "Claude Haiku — Rédiger email personnalisé", "type": "main", "index": 0 }]] },
+    "Claude Haiku — Rédiger email personnalisé": { "main": [[{ "node": "Brevo SMTP — Envoyer cold email", "type": "main", "index": 0 }]] },
+    "Brevo SMTP — Envoyer cold email": { "main": [[{ "node": "Sheets — Mettre à jour statut", "type": "main", "index": 0 }]] },
+    "Cron — Vérif relances J+3": { "main": [[{ "node": "Prospects à relancer (J+3)", "type": "main", "index": 0 }]] },
+    "Prospects à relancer (J+3)": { "main": [[{ "node": "Filtrer prospects J+3 échus", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "NEXUS" }, { "name": "Cold Email" }, { "name": "B2B" }],
+  "meta": { "description": "Cold email B2B RGPD-conforme. Déclenché manuellement par Dow. Lit les prospects Google Sheets (statut: A contacter), génère un email personnalisé via Claude Haiku, envoie via Brevo SMTP (300/j gratuit), met à jour le statut. Relance J+3 automatique." }
+}

@@ -1,0 +1,26 @@
+{
+  "skill_name": "pair-programmer-cyber-senior",
+  "evals": [
+    {
+      "id": 0,
+      "name": "python-sql-injection",
+      "prompt": "Salut, je galère avec mon endpoint de login Flask, il marche pas bien. Peux-tu me dire ce qui cloche ?\n\n```python\nfrom flask import Flask, request, jsonify\nimport sqlite3\n\napp = Flask(__name__)\n\n@app.route('/login', methods=['POST'])\ndef login():\n    email = request.json.get('email')\n    password = request.json.get('password')\n    \n    conn = sqlite3.connect('users.db')\n    cursor = conn.cursor()\n    query = f\"SELECT * FROM users WHERE email = '{email}' AND password = '{password}'\"\n    cursor.execute(query)\n    user = cursor.fetchone()\n    \n    if user:\n        return jsonify({'status': 'ok', 'user': user})\n    return jsonify({'status': 'fail'}), 401\n```\n\nMon problème c'est que parfois ça renvoie 'fail' alors que le mot de passe est bon, je comprends pas pourquoi.",
+      "expected_output": "Le modèle identifie l'injection SQL et le stockage de mot de passe en clair, pose des questions socratiques, utilise le format 🧐/❓, et ne livre pas immédiatement le code corrigé.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "node-async-bug",
+      "prompt": "Hello, j'ai un bug bizarre avec mon code Node.js. Ma fonction processUsers est censée traiter une liste d'utilisateurs et renvoyer leurs profils enrichis, mais la réponse renvoyée par mon endpoint Express est toujours un tableau vide []. Pourtant quand je mets des console.log dans la fonction, je vois bien que les données sont récupérées.\n\n```javascript\nfunction processUsers(userIds) {\n  const results = [];\n  userIds.forEach(async (id) => {\n    const profile = await fetchProfile(id);\n    results.push(profile);\n  });\n  return results;\n}\n\napp.get('/users', async (req, res) => {\n  const profiles = processUsers([1,2,3,4,5]);\n  res.json(profiles);\n});\n```",
+      "expected_output": "Le modèle identifie le problème forEach+async (promesses ignorées), pose une question socratique, utilise le format structuré, mentionne Promise.all comme piste.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "fastapi-architecture",
+      "prompt": "Je démarre un nouveau projet FastAPI pour une petite app de gestion de tâches (todo list avec users, projects, tasks). Est-ce que tu peux me donner direct le code complet d'un CRUD basique pour les tasks avec SQLAlchemy ? J'ai besoin d'aller vite, c'est pour un POC.",
+      "expected_output": "Le modèle refuse de livrer du code clé en main sans discussion, pose des questions sur l'architecture et la sécurité, aborde la séparation des couches, la validation, l'auth.",
+      "files": []
+    }
+  ]
+}

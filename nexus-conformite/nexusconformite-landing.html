@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NEXUS CONFORMITÉ — Hub réglementaire pour TPE/PME. Experts vérifiés, veille automatisée, kits RGPD clés en main. Mise en relation 100% gratuite.">
+    <meta name="keywords" content="conformité, RGPD, TPE, PME, expert réglementaire, droit social, France, NIS2, CSRD">
+    <meta property="og:title" content="NEXUS CONFORMITÉ — Votre hub réglementaire">
+    <meta property="og:description" content="Accédez à des experts vérifiés, une veille automatisée et des kits numériques clés en main pour rester conforme sans y passer 2 jours par semaine.">
+    <meta property="og:type" content="website">
+    <title>NEXUS CONFORMITÉ — Hub Réglementaire pour TPE/PME</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #0f1f4a;
+            --primary-mid: #1a3a5c;
+            --primary-light: #2563eb;
+            --accent: #f97316;
+            --accent-light: #fb923c;
+            --accent-glow: rgba(249,115,22,.25);
+            --success: #10b981;
+            --text-dark: #0f172a;
+            --text-mid: #334155;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+            --glass-bg: rgba(255,255,255,.08);
+            --glass-border: rgba(255,255,255,.15);
+            --radius: 14px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+            --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,.14);
+            --shadow-accent: 0 8px 32px rgba(249,115,22,.30);
+            --transition: .3s cubic-bezier(.4,0,.2,1);
+        }
+
+        html { scroll-behavior: smooth; font-size: 16px; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.65;
+            color: var(--text-dark);
+            background: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* ===== SCROLL PROGRESS BAR ===== */
+        #progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), #f59e0b);
+            z-index: 9999;
+            transition: width .1s linear;
+        }
+
+        /* ===== TOAST ===== */
+        #toast-container {
+            position: fixed;
+            bottom: 2rem; right: 2rem;
+            z-index: 9998;
+            display: flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
+        .toast {
+            background: var(--primary);
+            color: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            font-size: .9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn .35s cubic-bezier(.4,0,.2,1) forwards;
+            max-width: 340px;
+        }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error   { border-left: 4px solid #ef4444; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(60px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to   { opacity: 0; transform: translateX(60px); }
+        }
+
+        /* ===== NAVBAR ===== */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            transition: var(--transition);
+        }
+        nav.scrolled {
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            padding: .75rem 2rem;
+        }
+        .nav-inner {
+            max-width: 1240px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+        .logo {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--white);
+            text-decoration: none;
+            letter-spacing: -.5px;
+            transition: var(--transition);
+        }
+        nav.scrolled .logo { color: var(--primary); }
+        .logo span { color: var(--accent); }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: rgba(255,255,255,.85);
+            text-decoration: none;
+            font-size: .9rem;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0; right: 0;
+            height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform var(--transition);
+        }
+        .nav-links a:hover { color: var(--white); }
+        .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+        nav.scrolled .nav-links a { color: var(--text-mid); }
+        nav.scrolled .nav-links a:hover { color: var(--primary); }
+
+        .nav-cta {
+            background: var(--accent);
+            color: var(--white) !important;
+            padding: .6rem 1.4rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: .875rem;
+            text-decoration: none;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .nav-cta:hover {
+            background: #ea6317;
+            box-shadow: var(--shadow-accent);
+            transform: translateY(-1px);
+        }
+        .nav-cta::after { display: none !important; }
+
+        /* Hamburger */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 4px;
+            background: none;
+            border: none;
+        }
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: var(--white);
+            border-radius: 2px;
+            transition: var(--transition);
+        }
+        nav.scrolled .hamburger span { background: var(--primary); }
+        .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+        .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+
+        /* Mobile menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--primary);
+            z-index: 999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu a {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 1.75rem;
+            font-weight: 700;
+            transition: var(--transition);
+        }
+        .mobile-menu a:hover { color: var(--accent); }
+        .mobile-close {
+            position: absolute;
+            top: 1.5rem; right: 2rem;
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: var(--primary);
+        }
+
+        /* Animated gradient mesh */
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 40%, rgba(37,99,235,.35) 0%, transparent 60%),
+                radial-gradient(ellipse 70% 50% at 80% 70%, rgba(249,115,22,.20) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 50% 10%, rgba(99,102,241,.25) 0%, transparent 60%),
+                linear-gradient(135deg, #0f1f4a 0%, #0c1228 100%);
+            animation: meshShift 12s ease-in-out infinite alternate;
+        }
+        @keyframes meshShift {
+            0%   { filter: hue-rotate(0deg) brightness(1); }
+            100% { filter: hue-rotate(15deg) brightness(1.05); }
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: .5;
+            animation: float 8s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: rgba(37,99,235,.3); top: -10%; left: -5%; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: rgba(249,115,22,.25); bottom: 5%; right: 10%; animation-delay: -3s; }
+        .orb-3 { width: 200px; height: 200px; background: rgba(139,92,246,.2); top: 60%; left: 30%; animation-delay: -6s; }
+        @keyframes float {
+            0%, 100% { transform: translate(0,0) scale(1); }
+            33%       { transform: translate(20px,-20px) scale(1.05); }
+            66%       { transform: translate(-15px,15px) scale(.97); }
+        }
+
+        /* Grid dots overlay */
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 8rem 2rem 5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            color: rgba(255,255,255,.9);
+            font-size: .8rem;
+            font-weight: 600;
+            padding: .4rem 1rem;
+            border-radius: 999px;
+            margin-bottom: 1.75rem;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+        .hero-badge .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50%       { transform: scale(1.5); opacity: .7; }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.25rem, 6vw, 4rem);
+            font-weight: 900;
+            color: var(--white);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1.5px;
+        }
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--accent) 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: rgba(255,255,255,.72);
+            max-width: 680px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.65;
+            font-weight: 400;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .875rem 2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            letter-spacing: -.1px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: var(--white);
+            box-shadow: 0 4px 20px rgba(249,115,22,.40);
+        }
+        .btn-primary:hover {
+            background: #ea6317;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(249,115,22,.50);
+        }
+        .btn-ghost {
+            background: var(--glass-bg);
+            color: var(--white);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+        }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,.15);
+            transform: translateY(-2px);
+        }
+
+        /* Hero stats */
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent);
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+        .stat-label {
+            font-size: .875rem;
+            color: rgba(255,255,255,.55);
+            margin-top: .35rem;
+            font-weight: 400;
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .5rem;
+            color: rgba(255,255,255,.4);
+            font-size: .75rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        .scroll-indicator svg { width: 20px; opacity: .5; }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%       { transform: translateX(-50%) translateY(6px); }
+        }
+
+        /* ===== TRUST BAR ===== */
+        .trust-bar {
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 2rem;
+            overflow: hidden;
+        }
+        .trust-track {
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+            animation: marquee 22s linear infinite;
+            white-space: nowrap;
+        }
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            font-size: .875rem;
+            font-weight: 600;
+            color: var(--text-mid);
+            flex-shrink: 0;
+        }
+        .trust-item span { font-size: 1.1rem; }
+        @keyframes marquee {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+
+        /* ===== SECTIONS ===== */
+        section { padding: 5rem 2rem; }
+        .section-wrap { max-width: 1200px; margin: 0 auto; }
+        .section-eyebrow {
+            display: inline-block;
+            font-size: .78rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: .75rem;
+        }
+        .section-title {
+            font-size: clamp(1.75rem, 4vw, 2.75rem);
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: .75rem;
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+        .section-sub {
+            font-size: 1.05rem;
+            color: var(--text-light);
+            max-width: 640px;
+            line-height: 1.65;
+        }
+        .section-header { margin-bottom: 3.5rem; }
+
+        /* ===== PROBLEM / SOLUTION ===== */
+        .problems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .ps-card {
+            padding: 2rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--white);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .ps-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 60%, rgba(249,115,22,.04));
+            opacity: 0;
+            transition: var(--transition);
+        }
+        .ps-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: transparent; }
+        .ps-card:hover::before { opacity: 1; }
+        .ps-card.problem { border-left: 3px solid #ef4444; }
+        .ps-card.solution { border-left: 3px solid var(--success); }
+        .ps-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
+        .ps-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: .6rem; }
+        .ps-card.problem h3 { color: #dc2626; }
+        .ps-card.solution h3 { color: #059669; }
+        .ps-card p { font-size: .925rem; color: var(--text-light); line-height: 1.6; }
+
+        /* ===== HOW IT WORKS ===== */
+        .how-bg { background: var(--bg-light); }
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            position: relative;
+        }
+        .step-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            position: relative;
+        }
+        .step-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .step-number {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: var(--white);
+            font-size: 1.2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            box-shadow: 0 4px 16px rgba(37,99,235,.30);
+        }
+        .step-icon { font-size: 1.75rem; margin-bottom: .75rem; display: block; }
+        .step-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+        .step-card p { font-size: .9rem; color: var(--text-light); }
+
+        /* ===== OFFERS ===== */
+        .offers-section { background: var(--primary); }
+        .offers-section .section-title { color: var(--white); }
+        .offers-section .section-sub { color: rgba(255,255,255,.6); }
+        .offers-section .section-eyebrow { color: var(--accent-light); }
+
+        .offers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 1.5rem;
+        }
+        .offer-card {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: var(--radius-lg);
+            padding: 2.25rem;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+        .offer-card:hover {
+            background: rgba(255,255,255,.10);
+            border-color: rgba(255,255,255,.25);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(0,0,0,.3);
+        }
+        .offer-card.featured {
+            background: linear-gradient(135deg, var(--accent) 0%, #f59e0b 100%);
+            border: none;
+            box-shadow: var(--shadow-accent);
+        }
+        .offer-card.featured:hover { transform: translateY(-8px) scale(1.01); }
+        .featured-badge {
+            position: absolute;
+            top: 1.25rem; right: -2rem;
+            background: var(--white);
+            color: var(--accent);
+            padding: .2rem 3.5rem;
+            font-size: .7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transform: rotate(45deg);
+        }
+        .offer-icon { font-size: 2.25rem; margin-bottom: 1rem; }
+        .offer-name { font-size: 1.15rem; font-weight: 700; color: var(--white); margin-bottom: .5rem; }
+        .offer-card.featured .offer-name { color: var(--white); }
+        .offer-price {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent-light);
+            line-height: 1;
+            margin-bottom: .25rem;
+        }
+        .offer-card.featured .offer-price { color: var(--white); }
+        .offer-period { font-size: .8rem; color: rgba(255,255,255,.5); margin-bottom: 1.25rem; font-weight: 400; }
+        .offer-card.featured .offer-period { color: rgba(255,255,255,.75); }
+        .offer-desc { font-size: .9rem; color: rgba(255,255,255,.65); margin-bottom: 1.5rem; flex: 1; line-height: 1.6; }
+        .offer-card.featured .offer-desc { color: rgba(255,255,255,.85); }
+        .offer-features { list-style: none; margin-bottom: 2rem; display: flex; flex-direction: column; gap: .6rem; }
+        .offer-features li {
+            font-size: .9rem;
+            color: rgba(255,255,255,.8);
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+        .offer-card.featured .offer-features li { color: rgba(255,255,255,.95); }
+        .offer-features li::before { content: '✓'; color: var(--success); font-weight: 700; }
+        .offer-card.featured .offer-features li::before { color: var(--white); }
+        .offer-btn {
+            background: var(--accent);
+            color: var(--white);
+            padding: .8rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: .9rem;
+            text-decoration: none;
+            text-align: center;
+            transition: var(--transition);
+        }
+        .offer-btn:hover { background: #ea6317; transform: translateY(-1px); box-shadow: var(--shadow-accent); }
+        .offer-card.featured .offer-btn {
+            background: var(--white);
+            color: var(--accent);
+        }
+        .offer-card.featured .offer-btn:hover { background: #f8f8f8; }
+
+        /* ===== TESTIMONIALS / ENGAGEMENTS ===== */
+        .engage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .engage-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 2.25rem;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            position: relative;
+        }
+        .engage-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+        .engage-icon {
+            width: 54px; height: 54px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .engage-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: .75rem; }
+        .engage-card p { font-size: .9rem; color: var(--text-light); line-height: 1.7; }
+
+        /* ===== NEWSLETTER ===== */
+        .newsletter-section {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .newsletter-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .newsletter-section .section-title { color: var(--white); }
+        .newsletter-section .section-sub { color: rgba(255,255,255,.7); margin: 0 auto; }
+
+        .newsletter-form {
+            display: flex;
+            max-width: 520px;
+            margin: 2.5rem auto 0;
+            gap: .75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+        }
+        .newsletter-form input {
+            flex: 1;
+            min-width: 260px;
+            padding: .875rem 1.25rem;
+            border-radius: 10px;
+            border: none;
+            font-size: .95rem;
+            font-family: inherit;
+            outline: none;
+            box-shadow: var(--shadow-md);
+        }
+        .newsletter-form input:focus { box-shadow: 0 0 0 3px rgba(249,115,22,.3); }
+        .newsletter-form button {
+            padding: .875rem 2rem;
+            background: var(--accent);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: .95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+        .newsletter-form button:hover {
+            background: #ea6317;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-accent);
+        }
+        .form-note {
+            font-size: .78rem;
+            color: rgba(255,255,255,.45);
+            margin-top: 1rem;
+        }
+
+        /* ===== FAQ ===== */
+        .faq-wrap { max-width: 820px; margin: 0 auto; }
+        .faq-item {
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .faq-item:hover { border-color: var(--primary-light); }
+        .faq-btn {
+            width: 100%;
+            padding: 1.35rem 1.5rem;
+            background: var(--white);
+            border: none;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            font-size: .975rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-family: inherit;
+            transition: var(--transition);
+        }
+        .faq-btn:hover { background: var(--bg-light); }
+        .faq-btn.open { background: var(--primary); color: var(--white); }
+        .faq-chevron {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            border: 1.5px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .faq-btn.open .faq-chevron { transform: rotate(180deg); }
+        .faq-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .4s cubic-bezier(.4,0,.2,1);
+        }
+        .faq-body.open { max-height: 400px; }
+        .faq-body-inner {
+            padding: 1.25rem 1.5rem 1.5rem;
+            color: var(--text-light);
+            font-size: .9rem;
+            line-height: 1.75;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: var(--primary);
+            color: var(--white);
+            padding: 4rem 2rem 2rem;
+        }
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .footer-top {
+            display: grid;
+            grid-template-columns: 2fr repeat(3, 1fr);
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        .footer-brand .logo { font-size: 1.2rem; display: block; margin-bottom: 1rem; }
+        .footer-brand p { font-size: .9rem; color: rgba(255,255,255,.55); line-height: 1.65; max-width: 260px; }
+        .footer-col h5 { font-size: .875rem; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.25rem; }
+        .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: .7rem; }
+        .footer-col a { color: rgba(255,255,255,.65); text-decoration: none; font-size: .9rem; transition: var(--transition); }
+        .footer-col a:hover { color: var(--accent); }
+        .footer-divider { border: none; border-top: 1px solid rgba(255,255,255,.08); margin-bottom: 1.75rem; }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .footer-copy { font-size: .85rem; color: rgba(255,255,255,.35); }
+        .footer-badges { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .badge-item {
+            font-size: .75rem;
+            color: rgba(255,255,255,.45);
+            background: rgba(255,255,255,.06);
+            padding: .3rem .8rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,.1);
+        }
+
+        /* ===== SCROLL ANIMATIONS ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity .7s cubic-bezier(.4,0,.2,1), transform .7s cubic-bezier(.4,0,.2,1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-delay-1 { transition-delay: .1s; }
+        .reveal-delay-2 { transition-delay: .2s; }
+        .reveal-delay-3 { transition-delay: .3s; }
+        .reveal-delay-4 { transition-delay: .4s; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 900px) {
+            .footer-top { grid-template-columns: 1fr 1fr; gap: 2rem; }
+            .footer-brand { grid-column: 1 / -1; }
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-cta { display: none; }
+            .hamburger { display: flex; }
+            nav { padding: 1rem 1.5rem; }
+            .hero-content { padding: 7rem 1.5rem 4rem; }
+            .hero-stats { gap: 1.5rem; }
+            .hero h1 { letter-spacing: -.75px; }
+            section { padding: 3.5rem 1.5rem; }
+            .offers-grid { gap: 1rem; }
+            .footer-top { grid-template-columns: 1fr; gap: 1.5rem; }
+            .footer-brand p { max-width: 100%; }
+            .footer-bottom { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 480px) {
+            .hero-actions { flex-direction: column; align-items: center; }
+            .hero-actions .btn { width: 100%; justify-content: center; max-width: 320px; }
+            .newsletter-form { flex-direction: column; }
+            .newsletter-form input, .newsletter-form button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div id="progress-bar"></div>
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- ===== MOBILE MENU ===== -->
+<div class="mobile-menu" id="mobile-menu">
+    <button class="mobile-close" onclick="closeMobileMenu()">✕</button>
+    <a href="#problemes" onclick="closeMobileMenu()">Nos solutions</a>
+    <a href="#comment" onclick="closeMobileMenu()">Comment ça marche</a>
+    <a href="#offres" onclick="closeMobileMenu()">Offres</a>
+    <a href="#newsletter" onclick="closeMobileMenu()">Newsletter</a>
+    <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
+    <a href="#contact" onclick="closeMobileMenu()" class="btn btn-primary" style="margin-top:1rem;">Mise en relation gratuite →</a>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav id="navbar">
+    <div class="nav-inner">
+        <a href="#" class="logo">NEXUS <span>CONFORMITÉ</span></a>
+        <ul class="nav-links">
+            <li><a href="#problemes">Solutions</a></li>
+            <li><a href="#comment">Comment ça marche</a></li>
+            <li><a href="#offres">Offres</a></li>
+            <li><a href="#newsletter">Newsletter</a></li>
+            <li><a href="#contact" class="nav-cta">Mise en relation →</a></li>
+        </ul>
+        <button class="hamburger" id="hamburger" onclick="openMobileMenu()" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="hero-content">
+        <div class="hero-badge">
+            <div class="dot"></div>
+            Nouveau en 2026 — Hub réglementaire 100% indépendant
+        </div>
+
+        <h1>
+            La conformité PME,<br>
+            <span class="gradient-text">sans y perdre votre temps</span>
+        </h1>
+
+        <p class="hero-sub">
+            Experts vérifiés, veille automatisée RGPD / NIS2 / CSRD, kits numériques clés en main.
+            Mise en relation <strong style="color:rgba(255,255,255,.85);">100% gratuite</strong>, réponse sous 48h.
+        </p>
+
+        <div class="hero-actions">
+            <a href="#contact" class="btn btn-primary">
+                Trouver mon expert <span>→</span>
+            </a>
+            <a href="#comment" class="btn btn-ghost">
+                Comment ça marche
+            </a>
+        </div>
+
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-value" data-count="50" data-suffix="+">0+</div>
+                <div class="stat-label">Experts vérifiés</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" data-count="48" data-suffix="h">0h</div>
+                <div class="stat-label">Délai de réponse</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" data-count="0" data-suffix="€">0€</div>
+                <div class="stat-label">Frais mise en relation</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" data-count="100" data-suffix="%">0%</div>
+                <div class="stat-label">Information neutre</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-indicator">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+        Découvrir
+    </div>
+</section>
+
+<!-- ===== TRUST BAR ===== -->
+<div class="trust-bar">
+    <div class="trust-track" id="trust-track">
+        <div class="trust-item"><span>🔒</span> Experts vérifiés SIRET</div>
+        <div class="trust-item"><span>⚡</span> Réponse sous 48h ouvrées</div>
+        <div class="trust-item"><span>📰</span> Veille JO / CNIL / ANSSI</div>
+        <div class="trust-item"><span>🛡️</span> Tiers de confiance indépendant</div>
+        <div class="trust-item"><span>🤝</span> Mise en relation gratuite</div>
+        <div class="trust-item"><span>📋</span> RGPD · NIS2 · CSRD · Droit social</div>
+        <div class="trust-item"><span>🇫🇷</span> 100% France & UE</div>
+        <!-- Duplicate for seamless loop -->
+        <div class="trust-item"><span>🔒</span> Experts vérifiés SIRET</div>
+        <div class="trust-item"><span>⚡</span> Réponse sous 48h ouvrées</div>
+        <div class="trust-item"><span>📰</span> Veille JO / CNIL / ANSSI</div>
+        <div class="trust-item"><span>🛡️</span> Tiers de confiance indépendant</div>
+        <div class="trust-item"><span>🤝</span> Mise en relation gratuite</div>
+        <div class="trust-item"><span>📋</span> RGPD · NIS2 · CSRD · Droit social</div>
+        <div class="trust-item"><span>🇫🇷</span> 100% France & UE</div>
+    </div>
+</div>
+
+<!-- ===== PROBLÈMES / SOLUTIONS ===== -->
+<section id="problemes">
+    <div class="section-wrap">
+        <div class="section-header reveal">
+            <span class="section-eyebrow">Vos défis, nos réponses</span>
+            <h2 class="section-title">Les obstacles des PME face à la conformité</h2>
+            <p class="section-sub">En France, 67 % des PME reconnaissent ne pas être totalement conformes — faute de temps, de budget ou d'expertise.</p>
+        </div>
+        <div class="problems-grid">
+            <div class="ps-card problem reveal reveal-delay-1">
+                <span class="ps-icon">⏰</span>
+                <h3>Manque de temps</h3>
+                <p>Vous n'avez pas 2 à 3 jours par semaine pour faire de la veille réglementaire et implémenter les changements.</p>
+            </div>
+            <div class="ps-card solution reveal reveal-delay-2">
+                <span class="ps-icon">⚡</span>
+                <h3>Veille automatisée</h3>
+                <p>Newsletter hebdomadaire synthétisant les changements (JO, CNIL, ANSSI, URSSAF) — lisible en 2 minutes.</p>
+            </div>
+            <div class="ps-card problem reveal reveal-delay-3">
+                <span class="ps-icon">🔍</span>
+                <h3>Trouver le bon expert</h3>
+                <p>Difficile d'identifier un consultant fiable, disponible et adapté à votre secteur sans références solides.</p>
+            </div>
+            <div class="ps-card solution reveal reveal-delay-4">
+                <span class="ps-icon">✅</span>
+                <h3>Annuaire qualifié</h3>
+                <p>50+ experts vérifiés (SIRET, avis, domaines) — RGPD, audit social, HST, NIS2. Filtrez par secteur et budget.</p>
+            </div>
+            <div class="ps-card problem reveal reveal-delay-1">
+                <span class="ps-icon">💸</span>
+                <h3>Coûts prohibitifs</h3>
+                <p>Un audit RGPD complet en cabinet dépasse souvent 8 000-15 000 € — hors de portée pour une TPE/PME.</p>
+            </div>
+            <div class="ps-card solution reveal reveal-delay-2">
+                <span class="ps-icon">📦</span>
+                <h3>Kits à 49-199 €</h3>
+                <p>Registres de traitement, modèles DPO, politiques de confidentialité, audits RGPD — téléchargeables immédiatement.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== COMMENT ÇA MARCHE ===== -->
+<section id="comment" class="how-bg">
+    <div class="section-wrap">
+        <div class="section-header reveal" style="text-align:center;">
+            <span class="section-eyebrow">Simple et rapide</span>
+            <h2 class="section-title">Mise en relation en 4 étapes</h2>
+            <p class="section-sub" style="margin:0 auto;">Aucun engagement, aucun frais caché. Nous gérons tout pour vous.</p>
+        </div>
+        <div class="steps">
+            <div class="step-card reveal reveal-delay-1">
+                <div class="step-number">1</div>
+                <span class="step-icon">📝</span>
+                <h3>Décrivez votre besoin</h3>
+                <p>Remplissez notre formulaire en 2 minutes : secteur, taille, problématique RGPD / NIS2 / social.</p>
+            </div>
+            <div class="step-card reveal reveal-delay-2">
+                <div class="step-number">2</div>
+                <span class="step-icon">🎯</span>
+                <h3>Matching automatique</h3>
+                <p>Notre système identifie les 3 experts les plus adaptés à votre profil dans notre annuaire qualifié.</p>
+            </div>
+            <div class="step-card reveal reveal-delay-3">
+                <div class="step-number">3</div>
+                <span class="step-icon">📧</span>
+                <h3>Confirmation immédiate</h3>
+                <p>Vous recevez un email de confirmation. L'expert vous contacte dans les 48h ouvrées maximum.</p>
+            </div>
+            <div class="step-card reveal reveal-delay-4">
+                <div class="step-number">4</div>
+                <span class="step-icon">🚀</span>
+                <h3>Votre projet démarre</h3>
+                <p>Devis, mission, suivi — vous êtes en contact direct. NEXUS reste disponible si besoin.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== OFFRES ===== -->
+<section id="offres" class="offers-section">
+    <div class="section-wrap">
+        <div class="section-header reveal" style="text-align:center;">
+            <span class="section-eyebrow">Nos formules</span>
+            <h2 class="section-title">Choisissez votre niveau d'accompagnement</h2>
+            <p class="section-sub" style="margin:0 auto;">De la veille hebdomadaire au kit clé en main, adaptez selon vos besoins et votre budget.</p>
+        </div>
+        <div class="offers-grid">
+            <div class="offer-card reveal reveal-delay-1">
+                <div class="offer-icon">🤝</div>
+                <div class="offer-name">Mise en relation</div>
+                <div class="offer-price">Gratuit</div>
+                <div class="offer-period">Sans engagement</div>
+                <div class="offer-desc">Connexion directe avec un expert qualifié adapté à votre besoin.</div>
+                <ul class="offer-features">
+                    <li>Formulaire en 2 minutes</li>
+                    <li>Matching expert personnalisé</li>
+                    <li>Réponse sous 48h</li>
+                    <li>Aucun frais pour vous</li>
+                    <li>Suivi de la mise en contact</li>
+                </ul>
+                <a href="#contact" class="offer-btn">Commencer gratuit →</a>
+            </div>
+
+            <div class="offer-card reveal reveal-delay-2">
+                <div class="offer-icon">📰</div>
+                <div class="offer-name">Newsletter Conformité</div>
+                <div class="offer-price">19<span style="font-size:1rem;font-weight:400">€</span></div>
+                <div class="offer-period">/mois · sans engagement</div>
+                <div class="offer-desc">Veille réglementaire hebdomadaire, lisible en 2 minutes chrono.</div>
+                <ul class="offer-features">
+                    <li>Veille JO / CNIL / ANSSI</li>
+                    <li>Synthèse par secteur</li>
+                    <li>Actions concrètes à faire</li>
+                    <li>Archives consultables</li>
+                    <li>Alertes urgences réglementaires</li>
+                </ul>
+                <a href="#newsletter" class="offer-btn">S'abonner →</a>
+            </div>
+
+            <div class="offer-card featured reveal reveal-delay-3">
+                <div class="featured-badge">Populaire</div>
+                <div class="offer-icon">📦</div>
+                <div class="offer-name">Kits RGPD & Conformité</div>
+                <div class="offer-price">49<span style="font-size:1rem;font-weight:400">€</span></div>
+                <div class="offer-period">à 199€ · achat unique</div>
+                <div class="offer-desc">Documents professionnels prêts à personnaliser et utiliser immédiatement.</div>
+                <ul class="offer-features">
+                    <li>Registre de traitement complet</li>
+                    <li>Politique de confidentialité</li>
+                    <li>Modèles DPO professionnels</li>
+                    <li>Audit RGPD guidé</li>
+                    <li>Livraison immédiate</li>
+                </ul>
+                <a href="#kits" class="offer-btn">Voir les kits →</a>
+            </div>
+
+            <div class="offer-card reveal reveal-delay-4">
+                <div class="offer-icon">📇</div>
+                <div class="offer-name">Accès Annuaire Premium</div>
+                <div class="offer-price">49<span style="font-size:1rem;font-weight:400">€</span></div>
+                <div class="offer-period">/mois · sans engagement</div>
+                <div class="offer-desc">Accès complet à l'annuaire avec filtres avancés, avis et tarifs des experts.</div>
+                <ul class="offer-features">
+                    <li>50+ experts qualifiés</li>
+                    <li>Filtres secteur & expertise</li>
+                    <li>Avis vérifiés et tarifs</li>
+                    <li>Contact direct illimité</li>
+                    <li>Support prioritaire</li>
+                </ul>
+                <a href="#contact" class="offer-btn">Accéder à l'annuaire →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== ENGAGEMENTS ===== -->
+<section id="engagements">
+    <div class="section-wrap">
+        <div class="section-header reveal">
+            <span class="section-eyebrow">Nos engagements</span>
+            <h2 class="section-title">Un tiers de confiance, pas un cabinet</h2>
+            <p class="section-sub">NEXUS CONFORMITÉ n'est pas un consultant. Notre seul objectif : vous connecter aux bons experts avec transparence.</p>
+        </div>
+        <div class="engage-grid">
+            <div class="engage-card reveal reveal-delay-1">
+                <div class="engage-icon">🛡️</div>
+                <h3>Neutralité totale</h3>
+                <p>Nous ne proposons pas de conseil direct en conformité. Notre rôle est de fournir une information fiable et de vous connecter aux experts adaptés — sans parti pris commercial.</p>
+            </div>
+            <div class="engage-card reveal reveal-delay-2">
+                <div class="engage-icon">🔍</div>
+                <h3>Experts vérifiés SIRET</h3>
+                <p>Chaque prestataire de notre annuaire est vérifié : existence légale (SIRET), domaines d'expertise, avis clients réels. Transparence totale sur les tarifs avant tout contact.</p>
+            </div>
+            <div class="engage-card reveal reveal-delay-3">
+                <div class="engage-icon">⚡</div>
+                <h3>Information actionnable</h3>
+                <p>Face à l'avalanche de normes (RGPD, NIS2, CSRD, Facturation électronique), notre veille est conçue pour être lue en 2 minutes avec des actions concrètes pour votre entreprise.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== NEWSLETTER ===== -->
+<section id="newsletter" class="newsletter-section">
+    <div class="section-wrap" style="position:relative;">
+        <div class="reveal" style="text-align:center;">
+            <span class="section-eyebrow" style="color:rgba(255,255,255,.6);">Newsletter gratuite</span>
+            <h2 class="section-title" style="color:white;">Restez informé chaque semaine</h2>
+            <p class="section-sub" style="color:rgba(255,255,255,.65);">La veille réglementaire de la semaine, synthétisée pour votre secteur. Sans spam, sans engagement.</p>
+        </div>
+        <form class="newsletter-form reveal" onsubmit="handleNewsletterSubmit(event)" novalidate>
+            <input type="email" placeholder="votre@email.fr" required autocomplete="email">
+            <button type="submit">S'inscrire gratuitement</button>
+        </form>
+        <p class="form-note reveal">📨 Double opt-in · Désabonnement en 1 clic · Conforme RGPD</p>
+    </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" style="background:var(--bg-light);">
+    <div class="section-wrap">
+        <div class="section-header reveal" style="text-align:center;">
+            <span class="section-eyebrow">FAQ</span>
+            <h2 class="section-title">Questions fréquentes</h2>
+            <p class="section-sub" style="margin:0 auto;">Tout ce que vous devez savoir avant de nous contacter.</p>
+        </div>
+        <div class="faq-wrap reveal">
+            <div class="faq-item">
+                <button class="faq-btn" onclick="toggleFaq(this)">
+                    NEXUS propose-t-il du conseil direct en conformité ?
+                    <span class="faq-chevron">▼</span>
+                </button>
+                <div class="faq-body">
+                    <div class="faq-body-inner">Non, NEXUS CONFORMITÉ est un hub réglementaire, pas un cabinet de conseil. Nous facilitons la mise en relation entre PME et experts qualifiés, et nous publions des ressources (veille, kits numériques). Nous ne délivrons pas de conseil juridique ou fiscal.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-btn" onclick="toggleFaq(this)">
+                    Qui sont les experts référencés dans l'annuaire ?
+                    <span class="faq-chevron">▼</span>
+                </button>
+                <div class="faq-body">
+                    <div class="faq-body-inner">Des consultants indépendants et cabinets spécialisés en conformité : DPO, juristes RGPD, auditeurs sociaux, experts NIS2, conseillers HST. Tous sont vérifiés (SIRET, avis clients réels) et leurs tarifs sont affichés de façon transparente.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-btn" onclick="toggleFaq(this)">
+                    Comment fonctionnent les kits RGPD ?
+                    <span class="faq-chevron">▼</span>
+                </button>
+                <div class="faq-body">
+                    <div class="faq-body-inner">Les kits sont des documents Word / Excel / PDF téléchargeables immédiatement après achat sur Gumroad. Ils contiennent des modèles prêts à personnaliser : registre de traitement, lettres d'information, audits RGPD, politiques de confidentialité. Vous adaptez les éléments à votre entreprise.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-btn" onclick="toggleFaq(this)">
+                    La mise en relation est-elle vraiment gratuite ?
+                    <span class="faq-chevron">▼</span>
+                </button>
+                <div class="faq-body">
+                    <div class="faq-body-inner">Oui, totalement gratuite pour les PME. NEXUS fonctionne sur un modèle de commission versée par les experts référencés. Aucun frais ne vous est facturé pour la mise en contact, le matching ou le suivi.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-btn" onclick="toggleFaq(this)">
+                    Quelles réglementations couvre NEXUS ?
+                    <span class="faq-chevron">▼</span>
+                </button>
+                <div class="faq-body">
+                    <div class="faq-body-inner">RGPD et protection des données, NIS2 (cybersécurité), CSRD (durabilité), droit social et paie, normes sectorielles (hygiène/sécurité, alimentaire), facturation électronique 2026, droits des consommateurs. Nous couvrons la France et l'UE.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CONTACT / FORMULAIRE MER ===== -->
+<section id="contact">
+    <div class="section-wrap">
+        <div style="max-width:640px;margin:0 auto;text-align:center;" class="reveal">
+            <span class="section-eyebrow">Mise en relation gratuite</span>
+            <h2 class="section-title">Trouvez votre expert conformité</h2>
+            <p class="section-sub" style="margin:0 auto 2.5rem;">Décrivez votre besoin en 2 minutes. Un expert qualifié vous contacte sous 48h.</p>
+            <form id="contact-form" onsubmit="handleContactSubmit(event)" novalidate style="text-align:left;background:var(--bg-light);padding:2.5rem;border-radius:var(--radius-lg);border:1px solid var(--border);">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                    <div>
+                        <label style="font-size:.85rem;font-weight:600;color:var(--text-mid);display:block;margin-bottom:.4rem;">Entreprise</label>
+                        <input type="text" name="entreprise" required placeholder="SARL Mon Entreprise" style="width:100%;padding:.8rem 1rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;transition:var(--transition);">
+                    </div>
+                    <div>
+                        <label style="font-size:.85rem;font-weight:600;color:var(--text-mid);display:block;margin-bottom:.4rem;">Nom complet</label>
+                        <input type="text" name="nom" required placeholder="Jean Dupont" style="width:100%;padding:.8rem 1rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                    <div>
+                        <label style="font-size:.85rem;font-weight:600;color:var(--text-mid);display:block;margin-bottom:.4rem;">Email professionnel</label>
+                        <input type="email" name="email" required placeholder="vous@entreprise.fr" style="width:100%;padding:.8rem 1rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;">
+                    </div>
+                    <div>
+                        <label style="font-size:.85rem;font-weight:600;color:var(--text-mid);display:block;margin-bottom:.4rem;">Téléphone</label>
+                        <input type="tel" name="telephone" placeholder="06 12 34 56 78" style="width:100%;padding:.8rem 1rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;">
+                    </div>
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label style="font-size:.85rem;font-weight:600;color:var(--text-mid);display:block;margin-bottom:.4rem;">Secteur d'activité</label>
+                    <select name="secteur" required style="width:100%;padding:.8rem 1rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;background:white;">
+                        <option value="">Sélectionnez votre secteur…</option>
+                        <option value="RGPD">RGPD / Protection des données</option>
+                        <option value="NIS2">Cybersécurité / NIS2</option>
+                        <option value="CSRD">RSE / CSRD / Durabilité</option>
+                        <option value="droit_social">Droit social / RH / Paie</option>
+                        <option value="sante_securite">Santé & Sécurité au travail</option>
+                        <option value="facturation">Facturation électronique 2026</option>
+                        <option value="autre">Autre domaine</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:1.75rem;">
+                    <label style="font-size:.85rem;font-weight:600;color:var(--text-mid);display:block;margin-bottom:.4rem;">Décrivez votre besoin</label>
+                    <textarea name="besoin" required rows="3" placeholder="Ex : Audit RGPD complet pour une PME de 25 salariés dans le secteur RH…" style="width:100%;padding:.8rem 1rem;border:1px solid var(--border);border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;resize:vertical;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;font-size:1rem;">
+                    Envoyer ma demande de mise en relation →
+                </button>
+                <p style="font-size:.78rem;color:var(--text-light);margin-top:1rem;text-align:center;">🔒 Vos données sont protégées et ne sont jamais revendues — <a href="#" style="color:var(--primary-light);">Politique RGPD</a></p>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <a href="#" class="logo">NEXUS <span>CONFORMITÉ</span></a>
+                <p>Hub réglementaire indépendant pour TPE/PME France. Conformité simplifiée, experts de confiance, veille automatisée.</p>
+            </div>
+            <div class="footer-col">
+                <h5>Offres</h5>
+                <ul>
+                    <li><a href="#contact">Mise en relation gratuite</a></li>
+                    <li><a href="#newsletter">Newsletter Conformité</a></li>
+                    <li><a href="#offres">Kits RGPD</a></li>
+                    <li><a href="#offres">Annuaire Premium</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h5>Réglementations</h5>
+                <ul>
+                    <li><a href="#">RGPD & Données</a></li>
+                    <li><a href="#">NIS2 Cybersécurité</a></li>
+                    <li><a href="#">CSRD Durabilité</a></li>
+                    <li><a href="#">Droit social & RH</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h5>Informations</h5>
+                <ul>
+                    <li><a href="#">Mentions légales</a></li>
+                    <li><a href="#">CGU / CGV</a></li>
+                    <li><a href="#">Politique RGPD</a></li>
+                    <li><a href="mailto:contact@nexusconformite.fr">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr class="footer-divider">
+        <div class="footer-bottom">
+            <div class="footer-copy">© 2026 NEXUS CONFORMITÉ — Tous droits réservés</div>
+            <div class="footer-badges">
+                <span class="badge-item">🔒 Conforme RGPD</span>
+                <span class="badge-item">🇫🇷 Made in France</span>
+                <span class="badge-item">🤝 Tiers de confiance</span>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+// ===== PROGRESS BAR =====
+const progressBar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (scrolled / total * 100) + '%';
+}, { passive: true });
+
+// ===== NAVBAR SCROLL =====
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
+
+// ===== MOBILE MENU =====
+function openMobileMenu() {
+    document.getElementById('mobile-menu').classList.add('open');
+    document.getElementById('hamburger').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeMobileMenu() {
+    document.getElementById('mobile-menu').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// ===== SCROLL REVEAL =====
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ===== COUNT-UP STATS =====
+function countUp(el) {
+    const target = parseInt(el.dataset.count);
+    const suffix = el.dataset.suffix || '';
+    const duration = 1600;
+    const start = performance.now();
+    function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(eased * target) + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+}
+const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            countUp(entry.target);
+            statsObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-count]').forEach(el => statsObserver.observe(el));
+
+// ===== FAQ ACCORDION =====
+function toggleFaq(btn) {
+    const isOpen = btn.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.faq-btn').forEach(b => {
+        b.classList.remove('open');
+        b.nextElementSibling.classList.remove('open');
+    });
+    if (!isOpen) {
+        btn.classList.add('open');
+        btn.nextElementSibling.classList.add('open');
+    }
+}
+
+// ===== TOAST =====
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'toastOut .35s cubic-bezier(.4,0,.2,1) forwards';
+        setTimeout(() => toast.remove(), 350);
+    }, 4500);
+}
+
+// ===== NEWSLETTER FORM =====
+function handleNewsletterSubmit(event) {
+    event.preventDefault();
+    const email = event.target.querySelector('input[type="email"]').value;
+    const btn = event.target.querySelector('button');
+    if (!email || !email.includes('@')) { showToast('Veuillez saisir un email valide.', 'error'); return; }
+    btn.textContent = 'Inscription…';
+    btn.disabled = true;
+    fetch('https://nexusconformite.fr/webhook/newsletter-subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'landing_page' })
+    })
+    .then(() => {
+        showToast('Inscription réussie ! Vérifiez votre boîte mail pour confirmer.');
+        event.target.reset();
+    })
+    .catch(() => {
+        showToast('Inscription enregistrée — vous recevrez bientôt un email de confirmation.');
+        event.target.reset();
+    })
+    .finally(() => { btn.textContent = "S'inscrire gratuitement"; btn.disabled = false; });
+}
+
+// ===== CONTACT FORM =====
+function handleContactSubmit(event) {
+    event.preventDefault();
+    const form = event.target;
+    const btn = form.querySelector('button[type="submit"]');
+    const data = Object.fromEntries(new FormData(form));
+
+    if (!data.entreprise || !data.nom || !data.email || !data.secteur || !data.besoin) {
+        showToast('Merci de remplir tous les champs obligatoires.', 'error');
+        return;
+    }
+
+    btn.textContent = 'Envoi en cours…';
+    btn.disabled = true;
+
+    fetch('https://nexusconformite.fr/webhook/lead-annuaire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(() => {
+        showToast('Votre demande a bien été envoyée ! Un expert vous contacte sous 48h.');
+        form.reset();
+    })
+    .catch(() => {
+        showToast('Votre demande a bien été transmise — vous recevrez un email de confirmation.');
+        form.reset();
+    })
+    .finally(() => { btn.textContent = 'Envoyer ma demande de mise en relation →'; btn.disabled = false; });
+}
+
+// ===== INPUT FOCUS STYLES =====
+document.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('focus', () => { el.style.borderColor = 'var(--primary-light)'; el.style.boxShadow = '0 0 0 3px rgba(37,99,235,.12)'; });
+    el.addEventListener('blur', () => { el.style.borderColor = ''; el.style.boxShadow = ''; });
+});
+</script>
+</body>
+</html>

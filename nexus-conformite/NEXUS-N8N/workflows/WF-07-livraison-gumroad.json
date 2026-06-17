@@ -1,0 +1,235 @@
+{
+  "name": "WF-07 — Livraison Gumroad + Suivi J+7",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gumroad-webhook",
+        "authentication": "none",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-gumroad",
+      "name": "Webhook — Vente Gumroad",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "nexus-gumroad-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nconst price = parseFloat(body.price || 0) / 100;\nreturn [{\n  json: {\n    buyerEmail: body.email || '',\n    buyerName: body.full_name || body.name || 'Client',\n    productName: body.product_name || 'Pack Conformité',\n    price: price.toFixed(2),\n    saleId: body.sale_id || body.id || 'SALE-' + Date.now(),\n    downloadUrl: body.url_redirect || '',\n    timestamp: new Date().toLocaleString('fr-FR'),\n    followupDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleString('fr-FR')\n  }\n}];"
+      },
+      "id": "parse-gumroad-sale",
+      "name": "Parser vente Gumroad",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "bonjour@nexusconformite.fr",
+        "toEmail": "={{ $json.buyerEmail }}",
+        "subject": "📦 Votre kit NEXUS CONFORMITÉ est disponible !",
+        "emailFormat": "html",
+        "html": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Votre kit est prêt à télécharger</title>\n    <style>\n        * {\n            margin: 0;\n            padding: 0;\n        }\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            background-color: #f5f5f5;\n            color: #333;\n        }\n        .container {\n            max-width: 600px;\n            margin: 0 auto;\n            background-color: #ffffff;\n            border-radius: 8px;\n            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n            overflow: hidden;\n        }\n        .header {\n            background: linear-gradient(135deg, #001f4d 0%, #003d7a 100%);\n            color: white;\n            padding: 40px 20px;\n            text-align: center;\n        }\n        .header h1 {\n            font-size: 28px;\n            margin-bottom: 10px;\n            font-weight: bold;\n        }\n        .header-icon {\n            font-size: 48px;\n            margin-bottom: 10px;\n        }\n        .logo {\n            display: inline-block;\n            font-size: 14px;\n            letter-spacing: 2px;\n            color: #ff8c00;\n            font-weight: bold;\n            margin-top: 10px;\n        }\n        .content {\n            padding: 40px 30px;\n        }\n        .greeting {\n            font-size: 18px;\n            color: #001f4d;\n            margin-bottom: 20px;\n            font-weight: bold;\n        }\n        .text-block {\n            font-size: 14px;\n            line-height: 1.6;\n            color: #555;\n            margin-bottom: 20px;\n        }\n        .order-info {\n            background-color: #f0f7ff;\n            border-left: 4px solid #ff8c00;\n            padding: 15px;\n            margin: 25px 0;\n            border-radius: 4px;\n            font-size: 14px;\n        }\n        .order-info strong {\n            color: #001f4d;\n        }\n        .download-box {\n            background-color: #e8f4f8;\n            border: 2px solid #ff8c00;\n            padding: 25px;\n            border-radius: 8px;\n            margin: 25px 0;\n            text-align: center;\n        }\n        .download-box h3 {\n            color: #001f4d;\n            font-size: 18px;\n            margin-bottom: 15px;\n        }\n        .download-button {\n            display: inline-block;\n            background-color: #ff8c00;\n            color: white;\n            padding: 15px 35px;\n            text-decoration: none;\n            border-radius: 4px;\n            font-weight: bold;\n            font-size: 16px;\n            margin: 10px 0;\n            text-align: center;\n        }\n        .download-button:hover {\n            background-color: #e67e00;\n        }\n        .instructions {\n            background-color: #fef9f0;\n            padding: 20px;\n            border-radius: 4px;\n            margin: 25px 0;\n            font-size: 13px;\n        }\n        .instructions h3 {\n            color: #001f4d;\n            font-size: 16px;\n            margin-bottom: 15px;\n        }\n        .instruction-item {\n            margin-bottom: 12px;\n            display: flex;\n            align-items: flex-start;\n        }\n        .instruction-number {\n            background-color: #ff8c00;\n            color: white;\n            width: 24px;\n            height: 24px;\n            border-radius: 50%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            font-weight: bold;\n            margin-right: 12px;\n            flex-shrink: 0;\n        }\n        .instruction-text {\n            flex: 1;\n            line-height: 1.5;\n            color: #555;\n        }\n        .support {\n            background-color: #e8f4f8;\n            border: 1px solid #b3d9e8;\n            padding: 15px;\n            border-radius: 4px;\n            margin: 25px 0;\n            font-size: 13px;\n            text-align: center;\n        }\n        .support strong {\n            color: #001f4d;\n            display: block;\n            margin-bottom: 5px;\n        }\n        .footer {\n            background-color: #f5f5f5;\n            padding: 25px 30px;\n            font-size: 12px;\n            color: #999;\n            text-align: center;\n            border-top: 1px solid #e0e0e0;\n        }\n        .footer-links {\n            margin-bottom: 15px;\n        }\n        .footer-links a {\n            color: #001f4d;\n            text-decoration: none;\n            margin: 0 10px;\n        }\n        .footer-links a:hover {\n            text-decoration: underline;\n        }\n        .company-info {\n            margin-top: 15px;\n            line-height: 1.6;\n            color: #777;\n        }\n    </style>\n</head>\n<body>\n    <table class=\"container\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); overflow: hidden;\">\n        <!-- HEADER -->\n        <tr>\n            <td class=\"header\" style=\"background: linear-gradient(135deg, #001f4d 0%, #003d7a 100%); color: white; padding: 40px 20px; text-align: center;\">\n                <div style=\"font-size: 48px; margin-bottom: 10px;\">📦</div>\n                <h1 style=\"font-size: 28px; margin-bottom: 10px; font-weight: bold; color: white;\">Votre kit est prêt !</h1>\n                <p style=\"margin: 0; font-size: 16px;\">Téléchargez maintenant</p>\n            </td>\n        </tr>\n\n        <!-- CONTENT -->\n        <tr>\n            <td style=\"padding: 40px 30px;\">\n                <p class=\"greeting\" style=\"font-size: 18px; color: #001f4d; margin-bottom: 20px; font-weight: bold;\">Bonjour,</p>\n\n                <p class=\"text-block\" style=\"font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px;\">\n                    Merci pour votre achat ! Votre kit [NOM_PRODUIT] est maintenant disponible en téléchargement.\n                </p>\n\n                <!-- ORDER INFO -->\n                <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; margin: 25px 0;\">\n                    <tr>\n                        <td style=\"background-color: #f0f7ff; border-left: 4px solid #ff8c00; padding: 15px; border-radius: 4px; font-size: 14px;\">\n                            <strong style=\"color: #001f4d;\">Produit :</strong> [NOM_PRODUIT]<br>\n                            <strong style=\"color: #001f4d;\">Date d'achat :</strong> [DATE_ACHAT]<br>\n                            <strong style=\"color: #001f4d;\">Montant :</strong> [MONTANT_ACHAT]\n                        </td>\n                    </tr>\n                </table>\n\n                <!-- DOWNLOAD SECTION -->\n                <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; background-color: #e8f4f8; border: 2px solid #ff8c00; padding: 25px; border-radius: 8px; margin: 25px 0; text-align: center;\">\n                    <tr>\n                        <td>\n                            <h3 style=\"color: #001f4d; font-size: 18px; margin-bottom: 15px;\">Cliquez ci-dessous pour télécharger votre kit</h3>\n                            <a href=\"[LIEN_TELECHARGEMENT]\" style=\"display: inline-block; background-color: #ff8c00; color: white; padding: 15px 35px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; margin: 10px 0;\">⬇️ Télécharger le kit</a>\n                            <p style=\"margin-top: 15px; font-size: 12px; color: #666;\">Lien valide pendant 30 jours</p>\n                        </td>\n                    </tr>\n                </table>\n\n                <!-- INSTRUCTIONS -->\n                <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; background-color: #fef9f0; padding: 20px; border-radius: 4px; margin: 25px 0;\">\n                    <tr>\n                        <td>\n                            <h3 style=\"color: #001f4d; font-size: 16px; margin-bottom: 15px;\">💡 Instructions d'utilisation</h3>\n\n                            <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; margin-bottom: 12px;\">\n                                <tr>\n                                    <td style=\"background-color: #ff8c00; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; font-weight: bold; vertical-align: middle; margin-right: 12px;\">1</td>\n                                    <td style=\"font-size: 13px; color: #555; line-height: 1.5;\">Téléchargez le fichier en cliquant sur le bouton ci-dessus</td>\n                                </tr>\n                            </table>\n\n                            <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; margin-bottom: 12px;\">\n                                <tr>\n                                    <td style=\"background-color: #ff8c00; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; font-weight: bold; vertical-align: middle; margin-right: 12px;\">2</td>\n                                    <td style=\"font-size: 13px; color: #555; line-height: 1.5;\">Décompressez l'archive ZIP sur votre ordinateur</td>\n                                </tr>\n                            </table>\n\n                            <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; margin-bottom: 12px;\">\n                                <tr>\n                                    <td style=\"background-color: #ff8c00; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; font-weight: bold; vertical-align: middle; margin-right: 12px;\">3</td>\n                                    <td style=\"font-size: 13px; color: #555; line-height: 1.5;\">Consultez le fichier README.txt pour les instructions détaillées</td>\n                                </tr>\n                            </table>\n\n                            <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%;\">\n                                <tr>\n                                    <td style=\"background-color: #ff8c00; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; font-weight: bold; vertical-align: middle; margin-right: 12px;\">4</td>\n                                    <td style=\"font-size: 13px; color: #555; line-height: 1.5;\">Intégrez les outils dans votre processus de conformité</td>\n                                </tr>\n                            </table>\n                        </td>\n                    </tr>\n                </table>\n\n                <!-- SUPPORT -->\n                <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; background-color: #e8f4f8; border: 1px solid #b3d9e8; padding: 15px; border-radius: 4px; margin: 25px 0; font-size: 13px; text-align: center;\">\n                    <tr>\n                        <td>\n                            <strong style=\"color: #001f4d; display: block; margin-bottom: 5px;\">❓ Des questions sur votre kit ?</strong>\n                            Consultez notre FAQ ou contactez-nous à <a href=\"mailto:contact@nexusconformite.fr\" style=\"color: #001f4d; text-decoration: none;\">contact@nexusconformite.fr</a>\n                        </td>\n                    </tr>\n                </table>\n\n                <p class=\"text-block\" style=\"font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px;\">\n                    Nous vous remercions d'avoir choisi NEXUS CONFORMITÉ. Nous sommes convaincus que ce kit vous sera très utile dans votre parcours de conformité.\n                </p>\n\n                <p class=\"text-block\" style=\"font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px;\">\n                    À bientôt,<br>\n                    <strong style=\"color: #001f4d;\">L'équipe NEXUS CONFORMITÉ</strong>\n                </p>\n            </td>\n        </tr>\n\n        <!-- FOOTER -->\n        <tr>\n            <td class=\"footer\" style=\"background-color: #f5f5f5; padding: 25px 30px; font-size: 12px; color: #999; text-align: center; border-top: 1px solid #e0e0e0;\">\n                <div class=\"footer-links\" style=\"margin-bottom: 15px;\">\n                    <a href=\"[LIEN_DESABONNEMENT]\" style=\"color: #001f4d; text-decoration: none; margin: 0 10px;\">Me désabonner</a> |\n                    <a href=\"[LIEN_PREFERENCES]\" style=\"color: #001f4d; text-decoration: none; margin: 0 10px;\">Préférences</a> |\n                    <a href=\"[LIEN_FAQ]\" style=\"color: #001f4d; text-decoration: none; margin: 0 10px;\">FAQ</a>\n                </div>\n                <div class=\"company-info\" style=\"margin-top: 15px; line-height: 1.6; color: #777;\">\n                    <strong>NEXUS CONFORMITÉ</strong><br>\n                    Email: contact@nexusconformite.fr<br>\n                    Site: www.nexusconformite.fr<br>\n                    <br>\n                    © 2026 NEXUS CONFORMITÉ. Tous droits réservés.\n                </div>\n            </td>\n        </tr>\n    </table>\n</body>\n</html>"
+      },
+      "id": "email-delivery",
+      "name": "Email — Livraison immédiate",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        680,
+        200
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "brevo-smtp-creds",
+          "name": "Brevo SMTP NEXUS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.GOOGLE_SHEETS_ID }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Ventes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "saleId": "={{ $json.saleId }}",
+            "date": "={{ $json.timestamp }}",
+            "email": "={{ $json.buyerEmail }}",
+            "nom": "={{ $json.buyerName }}",
+            "produit": "={{ $json.productName }}",
+            "montant": "={{ $json.price }}",
+            "statut_suivi": "A envoyer J+7"
+          }
+        },
+        "options": {}
+      },
+      "id": "sheets-log-sale",
+      "name": "Sheets — Logger vente",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        680,
+        360
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-creds",
+          "name": "Google Sheets NEXUS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "💰 *VENTE GUMROAD*\n\n🛍️ *Produit :* {{ $json.productName }}\n💶 *Montant :* {{ $json.price }}€\n📧 *Acheteur :* {{ $json.buyerName }}\n🕐 *Heure :* {{ $json.timestamp }}\n\n✅ Email de livraison envoyé\n📋 Suivi J+7 programmé",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-sale",
+      "name": "Telegram — Alerte vente",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        520
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-creds",
+          "name": "NEXUS Bot Telegram"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "unit": "days",
+        "value": 7
+      },
+      "id": "wait-7-days",
+      "name": "Attendre 7 jours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "bonjour@nexusconformite.fr",
+        "toEmail": "={{ $json.buyerEmail }}",
+        "subject": "💼 Comment ça se passe avec votre kit RGPD ?",
+        "emailFormat": "html",
+        "html": "<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Comment se passe votre mise en conformité ?</title>\n    <style>\n        * {\n            margin: 0;\n            padding: 0;\n        }\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            background-color: #f5f5f5;\n            color: #333;\n        }\n        .container {\n            max-width: 600px;\n            margin: 0 auto;\n            background-color: #ffffff;\n            border-radius: 8px;\n            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n            overflow: hidden;\n        }\n        .header {\n            background: linear-gradient(135deg, #001f4d 0%, #003d7a 100%);\n            color: white;\n            padding: 40px 20px;\n            text-align: center;\n        }\n        .header h1 {\n            font-size: 28px;\n            margin-bottom: 10px;\n            font-weight: bold;\n        }\n        .header-icon {\n            font-size: 48px;\n            margin-bottom: 10px;\n        }\n        .content {\n            padding: 40px 30px;\n        }\n        .greeting {\n            font-size: 18px;\n            color: #001f4d;\n            margin-bottom: 20px;\n            font-weight: bold;\n        }\n        .text-block {\n            font-size: 14px;\n            line-height: 1.6;\n            color: #555;\n            margin-bottom: 20px;\n        }\n        .tips-box {\n            background-color: #fef9f0;\n            border-left: 4px solid #ff8c00;\n            padding: 20px;\n            margin: 25px 0;\n            border-radius: 4px;\n        }\n        .tips-box h3 {\n            color: #001f4d;\n            font-size: 16px;\n            margin-bottom: 15px;\n        }\n        .tip-item {\n            margin-bottom: 15px;\n            font-size: 13px;\n            color: #555;\n            line-height: 1.6;\n        }\n        .tip-item strong {\n            color: #ff8c00;\n        }\n        .survey-box {\n            background-color: #e8f4f8;\n            border: 2px solid #ff8c00;\n            padding: 25px;\n            border-radius: 8px;\n            margin: 25px 0;\n            text-align: center;\n        }\n        .survey-box h3 {\n            color: #001f4d;\n            font-size: 18px;\n            margin-bottom: 15px;\n        }\n        .cta-button {\n            display: inline-block;\n            background-color: #ff8c00;\n            color: white;\n            padding: 12px 30px;\n            text-decoration: none;\n            border-radius: 4px;\n            font-weight: bold;\n            font-size: 14px;\n            margin: 10px 0;\n        }\n        .cta-button:hover {\n            background-color: #e67e00;\n        }\n        .upsell-section {\n            background-color: #f0f7ff;\n            border: 1px solid #b3d9e8;\n            padding: 20px;\n            border-radius: 4px;\n            margin: 25px 0;\n        }\n        .upsell-section h3 {\n            color: #001f4d;\n            font-size: 16px;\n            margin-bottom: 15px;\n        }\n        .upsell-item {\n            margin-bottom: 12px;\n            font-size: 13px;\n            color: #555;\n        }\n        .upsell-item strong {\n            color: #001f4d;\n        }\n        .support {\n            background-color: #e8f4f8;\n            border: 1px solid #b3d9e8;\n            padding: 15px;\n            border-radius: 4px;\n            margin: 25px 0;\n            font-size: 13px;\n            text-align: center;\n        }\n        .support strong {\n            color: #001f4d;\n            display: block;\n            margin-bottom: 5px;\n        }\n        .footer {\n            background-color: #f5f5f5;\n            padding: 25px 30px;\n            font-size: 12px;\n            color: #999;\n            text-align: center;\n            border-top: 1px solid #e0e0e0;\n        }\n        .footer-links {\n            margin-bottom: 15px;\n        }\n        .footer-links a {\n            color: #001f4d;\n            text-decoration: none;\n            margin: 0 10px;\n        }\n        .footer-links a:hover {\n            text-decoration: underline;\n        }\n        .company-info {\n            margin-top: 15px;\n            line-height: 1.6;\n            color: #777;\n        }\n    </style>\n</head>\n<body>\n    <table class=\"container\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); overflow: hidden;\">\n        <!-- HEADER -->\n        <tr>\n            <td class=\"header\" style=\"background: linear-gradient(135deg, #001f4d 0%, #003d7a 100%); color: white; padding: 40px 20px; text-align: center;\">\n                <div style=\"font-size: 48px; margin-bottom: 10px;\">🎯</div>\n                <h1 style=\"font-size: 28px; margin-bottom: 10px; font-weight: bold; color: white;\">Comment se passe votre mise en conformité ?</h1>\n                <p style=\"margin: 0; font-size: 16px;\">Une semaine déjà !</p>\n            </td>\n        </tr>\n\n        <!-- CONTENT -->\n        <tr>\n            <td style=\"padding: 40px 30px;\">\n                <p class=\"greeting\" style=\"font-size: 18px; color: #001f4d; margin-bottom: 20px; font-weight: bold;\">Bonjour [PRENOM],</p>\n\n                <p class=\"text-block\" style=\"font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px;\">\n                    Merci d'avoir choisi NEXUS CONFORMITÉ ! Une semaine a passé depuis votre achat du kit [NOM_PRODUIT].\n                    Nous espérons que vous avez trouvé les ressources utiles pour débuter votre mise en conformité.\n                </p>\n\n                <!-- SATISFACTION SURVEY -->\n                <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; background-color: #e8f4f8; border: 2px solid #ff8c00; padding: 25px; border-radius: 8px; margin: 25px 0; text-align: center;\">\n                    <tr>\n                        <td>\n                            <h3 style=\"color: #001f4d; font-size: 18px; margin-bottom: 15px;\">📋 Votre avis nous intéresse !</h3>\n                            <p style=\"font-size: 13px; color: #555; margin-bottom: 15px;\">Aidez-nous à améliorer nos services en répondant à un court sondage (2 min)</p>\n                            <a href=\"[LIEN_SONDAGE]\" style=\"display: inline-block; background-color: #ff8c00; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; margin: 10px 0;\">Répondre au sondage</a>\n                        </td>\n                    </tr>\n                </table>\n\n                <!-- TIPS SECTION -->\n                <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; background-color: #fef9f0; border-left: 4px solid #ff8c00; padding: 20px; margin: 25px 0; border-radius: 4px;\">\n                    <tr>\n                        <td>\n                            <h3 style=\"color: #001f4d; font-size: 16px; margin-bottom: 15px;\">💡 Conseils pour utiliser au mieux votre kit</h3>\n\n                            <div style=\"margin-bottom: 15px; font-size: 13px; color: #555; line-height: 1.6;\">\n                                <strong style=\"color: #ff8c00;\">Tip #1 - Commencez simple</strong><br>\n                                Ne cherchez pas à mettre en œuvre tous les processus à la fois. Commencez par les points les plus critiques pour votre activité.\n                            </div>\n\n                            <div style=\"margin-bottom: 15px; font-size: 13px; color: #555; line-height: 1.6;\">\n                                <strong style=\"color: #ff8c00;\">Tip #2 - Impliquez votre équipe</strong><br>\n                                La conformité est un processus collectif. Partagez les ressources et checklist avec vos collaborateurs.\n                            </div>\n\n                            <div style=\"margin-bottom: 15px; font-size: 13px; color: #555; line-height: 1.6;\">\n                                <strong style=\"color: #ff8c00;\">Tip #3 - Documentez vos progrès</strong><br>\n                                Utilisez les templates fournis pour documenter vos démarches. C'est essentiel en cas de contrôle.\n                            </div>\n\n                            <div style=\"font-size: 13px; color: #555; line-height: 1.6;\">\n                                <strong style=\"color: #ff8c00;\">Tip #4 - Révisez régulièrement</strong><br>\n                                Les réglementations changent. Révisez vos procédures tous les trimestres pour rester à jour.\n                            </div>\n                        </td>\n                    </tr>\n                </table>\n\n                <!-- UPSELL SECTION -->\n                <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; background-color: #f0f7ff; border: 1px solid #b3d9e8; padding: 20px; border-radius: 4px; margin: 25px 0;\">\n                    <tr>\n                        <td>\n                            <h3 style=\"color: #001f4d; font-size: 16px; margin-bottom: 15px;\">📚 Explorez nos autres ressources</h3>\n\n                            <div style=\"margin-bottom: 12px; font-size: 13px; color: #555;\">\n                                <strong style=\"color: #001f4d;\">📖 L'Annuaire des Ressources NEXUS</strong><br>\n                                Accédez à plus de 200 modèles, templates et guides de conformité pour tous les domaines.\n                                <br><a href=\"[LIEN_ANNUAIRE]\" style=\"color: #ff8c00; font-weight: bold; text-decoration: none;\">Découvrir l'annuaire</a>\n                            </div>\n\n                            <div style=\"margin-bottom: 12px; font-size: 13px; color: #555;\">\n                                <strong style=\"color: #001f4d;\">📧 Notre Newsletter Conformité</strong><br>\n                                Recevez chaque semaine des tips, actualités et exemples concrets de mise en conformité.\n                                <br><a href=\"[LIEN_NEWSLETTER]\" style=\"color: #ff8c00; font-weight: bold; text-decoration: none;\">S'abonner à la newsletter</a>\n                            </div>\n\n                            <div style=\"font-size: 13px; color: #555;\">\n                                <strong style=\"color: #001f4d;\">🎓 Webinaires & Formations</strong><br>\n                                Participez à nos sessions en ligne pour approfondir vos connaissances en conformité.\n                                <br><a href=\"[LIEN_WEBINAIRES]\" style=\"color: #ff8c00; font-weight: bold; text-decoration: none;\">Voir les formations</a>\n                            </div>\n                        </td>\n                    </tr>\n                </table>\n\n                <!-- SUPPORT -->\n                <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"width: 100%; background-color: #e8f4f8; border: 1px solid #b3d9e8; padding: 15px; border-radius: 4px; margin: 25px 0; font-size: 13px; text-align: center;\">\n                    <tr>\n                        <td>\n                            <strong style=\"color: #001f4d; display: block; margin-bottom: 5px;\">❓ Besoin d'aide ?</strong>\n                            N'hésitez pas à nous contacter : <a href=\"mailto:contact@nexusconformite.fr\" style=\"color: #001f4d; text-decoration: none;\">contact@nexusconformite.fr</a>\n                        </td>\n                    </tr>\n                </table>\n\n                <p class=\"text-block\" style=\"font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px;\">\n                    Nous sommes là pour vous soutenir à chaque étape de votre parcours de conformité. Continuez vos efforts,\n                    vous êtes sur la bonne voie !\n                </p>\n\n                <p class=\"text-block\" style=\"font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px;\">\n                    À bientôt,<br>\n                    <strong style=\"color: #001f4d;\">L'équipe NEXUS CONFORMITÉ</strong>\n                </p>\n            </td>\n        </tr>\n\n        <!-- FOOTER -->\n        <tr>\n            <td class=\"footer\" style=\"background-color: #f5f5f5; padding: 25px 30px; font-size: 12px; color: #999; text-align: center; border-top: 1px solid #e0e0e0;\">\n                <div class=\"footer-links\" style=\"margin-bottom: 15px;\">\n                    <a href=\"[LIEN_DESABONNEMENT]\" style=\"color: #001f4d; text-decoration: none; margin: 0 10px;\">Me désabonner</a> |\n                    <a href=\"[LIEN_PREFERENCES]\" style=\"color: #001f4d; text-decoration: none; margin: 0 10px;\">Préférences</a> |\n                    <a href=\"[LIEN_FAQ]\" style=\"color: #001f4d; text-decoration: none; margin: 0 10px;\">FAQ</a>\n                </div>\n                <div class=\"company-info\" style=\"margin-top: 15px; line-height: 1.6; color: #777;\">\n                    <strong>NEXUS CONFORMITÉ</strong><br>\n                    Email: contact@nexusconformite.fr<br>\n                    Site: www.nexusconformite.fr<br>\n                    <br>\n                    © 2026 NEXUS CONFORMITÉ. Tous droits réservés.\n                </div>\n            </td>\n        </tr>\n    </table>\n</body>\n</html>"
+      },
+      "id": "email-followup-j7",
+      "name": "Email — Suivi J+7 + Upsell",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        360
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "brevo-smtp-creds",
+          "name": "Brevo SMTP NEXUS"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook — Vente Gumroad": {
+      "main": [
+        [
+          {
+            "node": "Parser vente Gumroad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser vente Gumroad": {
+      "main": [
+        [
+          {
+            "node": "Email — Livraison immédiate",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sheets — Logger vente",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram — Alerte vente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets — Logger vente": {
+      "main": [
+        [
+          {
+            "node": "Attendre 7 jours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attendre 7 jours": {
+      "main": [
+        [
+          {
+            "node": "Email — Suivi J+7 + Upsell",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "NEXUS"
+    },
+    {
+      "name": "Gumroad"
+    },
+    {
+      "name": "Ventes"
+    }
+  ],
+  "meta": {
+    "description": "À chaque vente Gumroad : email de livraison immédiat avec lien téléchargement, log Google Sheets, alerte Telegram. Email de suivi automatique J+7 avec upsell webinaire + annuaire."
+  }
+}

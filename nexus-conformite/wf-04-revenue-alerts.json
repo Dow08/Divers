@@ -1,0 +1,112 @@
+{
+  "name": "WF-04 — ALERTES REVENUS",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "stripe-payment",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "6c7d8e9f-0g1h-2i3j-4k5l-6m7n8o9p0q1r",
+      "name": "Webhook Stripe Payment",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "expression": "{\n  \"amount\": $json.data.object.amount / 100,\n  \"currency\": $json.data.object.currency.toUpperCase(),\n  \"source\": $json.data.object.metadata?.source || 'unknown',\n  \"timestamp\": new Date().toISOString()\n}",
+        "options": {}
+      },
+      "id": "7d8e9f0g-1h2i-3j4k-5l6m-7n8o9p0q1r2s",
+      "name": "Parse Payment Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "{{ $env.TELEGRAM_CHAT_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "💰 Nouveau paiement: {{ $json.amount }}€ — {{ $json.source }}"
+            }
+          ]
+        }
+      },
+      "id": "8e9f0g1h-2i3j-4k5l-6m7n-8o9p0q1r2s3t",
+      "name": "Telegram Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [550, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/{{ $env.GOOGLE_SHEETS_ID }}/values/revenue:append",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "values",
+              "value": "[[\"{{ $json.timestamp }}\", \"{{ $json.amount }}\", \"{{ $json.currency }}\", \"{{ $json.source }}\"]]"
+            }
+          ]
+        }
+      },
+      "id": "9f0g1h2i-3j4k-5l6m-7n8o-9p0q1r2s3t4u",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [550, 400]
+    }
+  ],
+  "connections": {
+    "6c7d8e9f-0g1h-2i3j-4k5l-6m7n8o9p0q1r": {
+      "main": [
+        [
+          {
+            "node": "7d8e9f0g-1h2i-3j4k-5l6m-7n8o9p0q1r2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7d8e9f0g-1h2i-3j4k-5l6m-7n8o9p0q1r2s": {
+      "main": [
+        [
+          {
+            "node": "8e9f0g1h-2i3j-4k5l-6m7n-8o9p0q1r2s3t",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "9f0g1h2i-3j4k-5l6m-7n8o-9p0q1r2s3t4u",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveDataExecution": "all",
+    "saveManualExecution": true,
+    "callerPolicy": "owner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "1"
+}

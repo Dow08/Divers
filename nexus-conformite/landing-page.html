@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Conformité — Kits RGPD, NIS2 et Facturation pour PME</title>
+  <meta name="description" content="Mettez votre PME en conformité rapidement. Kits RGPD prêts à l'emploi, comparateur d'outils, newsletter conformité gratuite. Paiement sécurisé, accès immédiat.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #2c3e50; line-height: 1.6; }
+    header { background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%); color: white; padding: 20px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    header nav { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 28px; font-weight: 700; }
+    header a { color: white; text-decoration: none; margin-left: 30px; font-size: 14px; transition: opacity 0.3s; }
+    header a:hover { opacity: 0.8; }
+
+    .hero { background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%); color: white; padding: 80px 20px; text-align: center; }
+    .hero-content { max-width: 900px; margin: 0 auto; }
+    .hero h2 { font-size: 48px; font-weight: 700; margin-bottom: 20px; line-height: 1.2; }
+    .hero p { font-size: 20px; margin-bottom: 30px; opacity: 0.95; }
+    .cta-button { display: inline-block; background: #ff9800; color: white; padding: 16px 40px; font-size: 16px; font-weight: 600; border-radius: 8px; text-decoration: none; transition: all 0.3s; cursor: pointer; border: none; }
+    .cta-button:hover { background: #e68900; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    .cta-button.secondary { background: white; color: #1f4e79; margin-left: 15px; }
+    .cta-button.secondary:hover { background: #f5f5f5; }
+
+    section { max-width: 1200px; margin: 60px auto; padding: 0 20px; }
+    section h2 { font-size: 36px; font-weight: 700; margin-bottom: 40px; color: #1f4e79; text-align: center; }
+    section h3 { font-size: 24px; font-weight: 600; margin-bottom: 15px; color: #2e75b6; }
+
+    .kits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 40px; }
+    .kit-card { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: all 0.3s; text-align: center; }
+    .kit-card:hover { transform: translateY(-8px); box-shadow: 0 12px 28px rgba(0,0,0,0.15); border-color: #2e75b6; }
+    .kit-card .icon { font-size: 48px; margin-bottom: 15px; }
+    .kit-card h3 { margin-bottom: 15px; }
+    .kit-card ul { list-style: none; margin: 20px 0; text-align: left; }
+    .kit-card li { padding: 8px 0; padding-left: 25px; position: relative; }
+    .kit-card li:before { content: "✓"; position: absolute; left: 0; color: #70ad47; font-weight: bold; }
+    .kit-card .price { font-size: 28px; font-weight: 700; color: #1f4e79; margin: 20px 0; }
+    .kit-card .price .currency { font-size: 18px; }
+    .kit-card .btn { width: 100%; margin-top: 20px; }
+
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin: 40px 0; }
+    .feature-box { background: #f8f9fa; padding: 25px; border-radius: 8px; border-left: 4px solid #2e75b6; }
+    .feature-box h4 { color: #1f4e79; margin-bottom: 10px; font-size: 18px; }
+    .feature-box p { color: #666; font-size: 14px; }
+
+    .comparateur { background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f7 100%); padding: 60px 20px; border-radius: 12px; margin: 60px 0; }
+    .comparateur h2 { color: #1f4e79; }
+    .comparateur p { font-size: 16px; margin-bottom: 30px; color: #555; }
+    .tool-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+    .tool-item { background: white; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #ddd; transition: all 0.3s; }
+    .tool-item:hover { border-color: #2e75b6; box-shadow: 0 4px 12px rgba(46, 117, 182, 0.15); }
+    .tool-item strong { display: block; margin-bottom: 8px; color: #1f4e79; }
+    .tool-item a { color: #ff9800; text-decoration: none; font-size: 13px; font-weight: 600; }
+
+    .newsletter-section { background: #fff3e0; padding: 50px 20px; border-radius: 12px; text-align: center; margin: 60px 0; }
+    .newsletter-section h2 { color: #1f4e79; }
+    .newsletter-section p { font-size: 18px; margin: 20px 0; color: #333; }
+    .newsletter-form { max-width: 500px; margin: 30px auto; display: flex; gap: 10px; }
+    .newsletter-form input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+    .newsletter-form button { padding: 12px 30px; background: #ff9800; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+    .newsletter-form button:hover { background: #e68900; }
+
+    .affiliates-section { background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f7 100%); padding: 60px 20px; border-radius: 12px; margin: 60px 0; }
+    .affiliates-section h2 { color: #1f4e79; }
+    .affiliates-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 40px; }
+    .affiliate-card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .affiliate-card .name { font-size: 20px; font-weight: 700; color: #1f4e79; margin-bottom: 10px; }
+    .affiliate-card .commission { font-size: 24px; font-weight: 700; color: #70ad47; margin-bottom: 15px; }
+    .affiliate-card .description { color: #666; font-size: 14px; margin-bottom: 15px; }
+    .affiliate-card .category { display: inline-block; background: #bdd7ee; color: #1f4e79; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+
+    .social-proof { background: white; padding: 40px; border-radius: 12px; margin: 60px 0; text-align: center; border: 2px solid #bdd7ee; }
+    .social-proof h3 { color: #1f4e79; margin-bottom: 30px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; }
+    .stat { font-size: 36px; font-weight: 700; color: #ff9800; }
+    .stat-label { color: #666; font-size: 14px; margin-top: 10px; }
+
+    footer { background: #2c3e50; color: white; padding: 40px 20px; text-align: center; margin-top: 80px; }
+    footer a { color: #ff9800; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    .warning-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin: 30px 0; color: #856404; }
+    .warning-box strong { display: block; margin-bottom: 10px; }
+
+    @media (max-width: 768px) {
+      .hero h2 { font-size: 32px; }
+      .cta-button.secondary { display: block; margin-left: 0; margin-top: 10px; }
+      .kits-grid { grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr; }
+      .affiliates-grid { grid-template-columns: 1fr; }
+      .newsletter-form { flex-direction: column; }
+      header nav { flex-direction: column; gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <h1>🔒 Nexus Conformité</h1>
+    <div>
+      <a href="#kits">Kits RGPD</a>
+      <a href="#comparateur">Comparateur</a>
+      <a href="#newsletter">Newsletter</a>
+      <a href="#affiliates">Partenaires</a>
+      <a href="contact.html">Contact</a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <h2>Mettez votre PME en conformité RGPD en quelques heures</h2>
+    <p>Kit RGPD clés en main, comparateur d'outils conformité, newsletter gratuite. Tout ce qu'il faut pour respecter la loi sans consultant coûteux.</p>
+    <button class="cta-button" onclick="document.location='#kits'">Explorer nos kits</button>
+    <button class="cta-button secondary" onclick="document.location='#comparateur'">Voir le comparateur</button>
+  </div>
+</section>
+
+<section id="kits">
+  <h2>📋 Nos Kits RGPD — Immédiatement opérationnels</h2>
+
+  <div class="kits-grid">
+    <div class="kit-card">
+      <div class="icon">🔒</div>
+      <h3>Kit Complet RGPD</h3>
+      <p>6 documents professionnels : registre de traitements, politique de confidentialité, procédure violations, checklist 50 points, DPA sous-traitants, guide cookies.</p>
+      <ul>
+        <li>Registre Art. 30 RGPD</li>
+        <li>Politique confidentialité</li>
+        <li>Procédure violations 72h</li>
+        <li>Checklist 50 points</li>
+        <li>DPA sous-traitants</li>
+        <li>Guide cookies conforme</li>
+      </ul>
+      <div class="price"><span class="currency">€</span>79</div>
+      <button class="cta-button btn">Acheter maintenant</button>
+      <p style="font-size: 12px; color: #999; margin-top: 10px;">✓ Téléchargement immédiat | Personnalisable</p>
+    </div>
+
+    <div class="kit-card">
+      <div class="icon">📊</div>
+      <h3>Kit NIS2 + Cybersécurité</h3>
+      <p>Directive NIS2 pour structures > 50 salariés. Évaluation risques, plan incident, matrice responsabilités, guide sensibilisation équipes.</p>
+      <ul>
+        <li>Évaluation risques NIS2</li>
+        <li>Matrice responsabilités</li>
+        <li>Plan de continuité</li>
+        <li>Guide incident cyber</li>
+        <li>Checklist conformité 30 points</li>
+        <li>Support 30j par email</li>
+      </ul>
+      <div class="price"><span class="currency">€</span>129</div>
+      <button class="cta-button btn">Acheter maintenant</button>
+      <p style="font-size: 12px; color: #999; margin-top: 10px;">✓ Téléchargement immédiat | Expert inclus</p>
+    </div>
+
+    <div class="kit-card">
+      <div class="icon">💳</div>
+      <h3>Kit Facturation Électronique</h3>
+      <p>Loi 2026 : obligations invoicing, migration logiciel, modèles factures, conformité fiscale. Préparez-vous à temps pour septembre 2026.</p>
+      <ul>
+        <li>Guide obligation 2026</li>
+        <li>Critères logiciel certifié</li>
+        <li>Modèles factures XML</li>
+        <li>Calendrier migration</li>
+        <li>Checklist DGFIP</li>
+        <li>FAQ 40 questions</li>
+      </ul>
+      <div class="price"><span class="currency">€</span>49</div>
+      <button class="cta-button btn">Acheter maintenant</button>
+      <p style="font-size: 12px; color: #999; margin-top: 10px;">✓ Téléchargement immédiat | DGFIP actualisé</p>
+    </div>
+  </div>
+
+  <div class="warning-box">
+    <strong>⚠️ Avertissement légal</strong>
+    Nos kits constituent une base de travail sérieuse mais ne remplacent pas un conseil juridique personnalisé. Pour toute situation spécifique, consultez un DPO certifié ou avocat en droit des données.
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature-box">
+    <h4>✓ Accès immédiat</h4>
+    <p>Téléchargement instant après paiement. Pas d'attente, pas d'inscription compliquée.</p>
+  </div>
+  <div class="feature-box">
+    <h4>✓ Conforme 2025</h4>
+    <p>Mis à jour avec dernière jurisprudence CNIL, loi facturation 2026, directive NIS2.</p>
+  </div>
+  <div class="feature-box">
+    <h4>✓ Personnalisable</h4>
+    <p>Tous les documents en DOCX. Remplacez les [CROCHETS] avec vos infos. Prêt en 1h.</p>
+  </div>
+  <div class="feature-box">
+    <h4>✓ Paiement sécurisé</h4>
+    <p>Stripe & PayPal. Données chiffrées. Facture automatique. Garantie 14j.</p>
+  </div>
+</section>
+
+<section class="comparateur" id="comparateur">
+  <h2>🛠️ Comparateur Outils — Trouver la meilleure solution</h2>
+  <p>Comparez prix, fonctionnalités et conditions des meilleurs outils de conformité français. Mise à jour quotidienne. <strong>Nos recommandations incluent des liens d'affiliation</strong> qui nous permettent de financer ce service gratuitement.</p>
+
+  <div class="tool-list">
+    <div class="tool-item">
+      <strong>Axonaut</strong>
+      <span>Paie • RH • RGPD</span>
+      <a href="?via=axonaut">Voir les tarifs →</a>
+    </div>
+    <div class="tool-item">
+      <strong>PayFit</strong>
+      <span>Paie • URSSAF</span>
+      <a href="?via=payfit">Voir les tarifs →</a>
+    </div>
+    <div class="tool-item">
+      <strong>Tiime</strong>
+      <span>Comptabilité • Paie</span>
+      <a href="?via=tiime">Voir les tarifs →</a>
+    </div>
+    <div class="tool-item">
+      <strong>Pennylane</strong>
+      <span>Facturation • Comptabilité</span>
+      <a href="?via=pennylane">Voir les tarifs →</a>
+    </div>
+    <div class="tool-item">
+      <strong>Shine</strong>
+      <span>Compte pro • Paie</span>
+      <a href="?via=shine">Voir les tarifs →</a>
+    </div>
+    <div class="tool-item">
+      <strong>Qonto</strong>
+      <span>Compte pro • Automation</span>
+      <a href="?via=qonto">Voir les tarifs →</a>
+    </div>
+    <div class="tool-item">
+      <strong>YouSign</strong>
+      <span>Signature électronique</span>
+      <a href="?via=yousign">Voir les tarifs →</a>
+    </div>
+    <div class="tool-item">
+      <strong>Legalstart</strong>
+      <span>Documents juridiques</span>
+      <a href="?via=legalstart">Voir les tarifs →</a>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 40px;">
+    <p style="color: #666; font-size: 14px;">💡 Le comparateur est alimenté automatiquement chaque jour. Les prix affichés incluent nos liens d'affiliation — sans surcoût pour vous.</p>
+  </div>
+</section>
+
+<section class="affiliates-section" id="affiliates">
+  <h2>🤝 Nos partenaires d'affiliation</h2>
+  <p style="text-align: center; color: #666; margin-bottom: 40px;">Comment ça marche ? Quand vous utilisez un lien « Nexus Conformité » vers Axonaut, PayFit ou autre, vous bénéficiez d'aucun surcoût — mais nous recevons une commission qui finance ce service.</p>
+
+  <div class="affiliates-grid">
+    <div class="affiliate-card">
+      <div class="name">Axonaut</div>
+      <div class="commission">40% récurrent</div>
+      <p class="description">Logiciel RH, paie, RGPD. Offre parfaite pour PME en conformité.</p>
+      <span class="category">Paie & RH</span>
+    </div>
+    <div class="affiliate-card">
+      <div class="name">PayFit</div>
+      <div class="commission">~25%</div>
+      <p class="description">SaaS paie leader en France. Intégration URSSAF.</p>
+      <span class="category">Paie</span>
+    </div>
+    <div class="affiliate-card">
+      <div class="name">Tiime</div>
+      <div class="commission">250€+ / signup</div>
+      <p class="description">Comptabilité + paie. Commissions élevées récurrentes.</p>
+      <span class="category">Comptabilité</span>
+    </div>
+    <div class="affiliate-card">
+      <div class="name">Pennylane</div>
+      <div class="commission">~25%</div>
+      <p class="description">Facturation & comptabilité modernes. API complète.</p>
+      <span class="category">Facturation</span>
+    </div>
+    <div class="affiliate-card">
+      <div class="name">Shine</div>
+      <div class="commission">200€ / account</div>
+      <p class="description">Compte professionnel ultra-simple. Très haute conversion.</p>
+      <span class="category">Banque</span>
+    </div>
+    <div class="affiliate-card">
+      <div class="name">Qonto</div>
+      <div class="commission">100€ / referral</div>
+      <p class="description">Compte pro + automations. Leader marché corporate.</p>
+      <span class="category">Banque</span>
+    </div>
+    <div class="affiliate-card">
+      <div class="name">YouSign</div>
+      <div class="commission">100€ / conversion</div>
+      <p class="description">Signature électronique conforme loi. Essential pour contrats.</p>
+      <span class="category">Signature</span>
+    </div>
+    <div class="affiliate-card">
+      <div class="name">Legalstart</div>
+      <div class="commission">30-80€ / lead</div>
+      <p class="description">Documents juridiques. Kit parfait avec nos guides.</p>
+      <span class="category">Juridique</span>
+    </div>
+  </div>
+</section>
+
+<section class="newsletter-section" id="newsletter">
+  <h2>📬 Newsletter Conformité — Gratuite, sans prise de tête</h2>
+  <p>Recevez chaque semaine :</p>
+  <p style="font-size: 16px; color: #666;">✓ Résumé des nouvelles obligations légales<br/>✓ Cas d'usage pratiques RGPD/NIS2/Facturation<br/>✓ Annonces outils & tarifs (comparateur)<br/>✓ Lois à venir à anticiper</p>
+
+  <div class="newsletter-form">
+    <input type="email" placeholder="Votre email professionnel..." required>
+    <button type="submit">S'abonner gratuitement</button>
+  </div>
+  <p style="font-size: 12px; color: #999; margin-top: 15px;">Pas de spam. Désinscription facile. Respect RGPD 100%.</p>
+</section>
+
+<section class="social-proof">
+  <h3>Nous faisons confiance à Nexus Conformité</h3>
+  <div class="stats">
+    <div>
+      <div class="stat">2500+</div>
+      <div class="stat-label">PME équipées</div>
+    </div>
+    <div>
+      <div class="stat">92%</div>
+      <div class="stat-label">Satisfaction clients</div>
+    </div>
+    <div>
+      <div class="stat">0</div>
+      <div class="stat-label">Contentieux clients</div>
+    </div>
+    <div>
+      <div class="stat">1h</div>
+      <div class="stat-label">Temps moyen mise en place</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 Nexus Conformité. Tous droits réservés. | <a href="cgv.html">CGV</a> | <a href="confidentialite.html">Confidentialité</a> | <a href="mentions.html">Mentions légales</a></p>
+  <p style="margin-top: 20px; font-size: 12px; color: #aaa;">Cet outil facilite la conformité mais ne remplace pas un conseil juridique. Pour litiges complexes, consultez un avocat spécialisé.</p>
+</footer>
+
+</body>
+</html>

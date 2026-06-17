@@ -1,0 +1,296 @@
+{
+  "name": "WF-05 — ONBOARDING PRESTATAIRE",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "stripe-subscription",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "0g1h2i3j-4k5l-6m7n-8o9p-0q1r2s3t4u5v",
+      "name": "Webhook Stripe Subscription",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "expression": "{\n  \"email\": $json.data.object.metadata?.email || $json.data.object.billing_details?.email,\n  \"provider_name\": $json.data.object.metadata?.provider_name,\n  \"subscription_id\": $json.data.object.id,\n  \"created_at\": new Date().toISOString()\n}",
+        "options": {}
+      },
+      "id": "1h2i3j4k-5l6m-7n8o-9p0q-1r2s3t4u5v6w",
+      "name": "Extract Provider Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "{{ $env.RESEND_FROM_EMAIL }}"
+            },
+            {
+              "name": "to",
+              "value": "{{ $json.email }}"
+            },
+            {
+              "name": "subject",
+              "value": "Bienvenue sur NEXUS Conformité"
+            },
+            {
+              "name": "html",
+              "value": "<p>Bonjour {{ $json.provider_name }},</p><p>Votre souscription a été confirmée. Votre espace prestataire est maintenant actif.</p>"
+            }
+          ]
+        }
+      },
+      "id": "2i3j4k5l-6m7n-8o9p-0q1r-2s3t4u5v6w7x",
+      "name": "Send Confirmation Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [550, 150]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "{{ $env.WP_API_URL }}/wp-json/wp/v2/posts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "basicAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "{{ $json.provider_name }}"
+            },
+            {
+              "name": "content",
+              "value": "Fiche prestataire à valider"
+            },
+            {
+              "name": "status",
+              "value": "draft"
+            },
+            {
+              "name": "categories",
+              "value": "[{{ $env.WP_DIRECTORY_CATEGORY }}]"
+            }
+          ]
+        }
+      },
+      "id": "3j4k5l6m-7n8o-9p0q-1r2s-3t4u5v6w7x8y",
+      "name": "Create Directory Draft Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [550, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "{{ $env.TELEGRAM_CHAT_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "🏢 Nouveau prestataire — valider fiche"
+            }
+          ]
+        }
+      },
+      "id": "4k5l6m7n-8o9p-0q1r-2s3t-4u5v6w7x8y9z",
+      "name": "Telegram Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [550, 450]
+    },
+    {
+      "parameters": {
+        "waitValue": 86400
+      },
+      "id": "5l6m7n8o-9p0q-1r2s-3t4u-5v6w7x8y9z0a",
+      "name": "Wait 24 Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "{{ $env.WP_API_URL }}/wp-json/wp/v2/posts/{{ $json.post_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "basicAuth",
+        "options": {}
+      },
+      "id": "6m7n8o9p-0q1r-2s3t-4u5v-6w7x8y9z0a1b",
+      "name": "Check Post Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "{{ $json.status }}",
+            "operator": {
+              "name": "filter.operator.equals",
+              "value": "equals"
+            },
+            "rightValue": "draft"
+          }
+        }
+      },
+      "id": "7n8o9p0q-1r2s-3t4u-5v6w-7x8y9z0a1b2c",
+      "name": "Still Draft?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "{{ $env.RESEND_FROM_EMAIL }}"
+            },
+            {
+              "name": "to",
+              "value": "{{ $json.email }}"
+            },
+            {
+              "name": "subject",
+              "value": "Rappel: Validation de votre fiche prestataire"
+            },
+            {
+              "name": "html",
+              "value": "<p>Bonjour,</p><p>Votre fiche prestataire est en attente de validation. Merci de la compléter.</p>"
+            }
+          ]
+        }
+      },
+      "id": "8o9p0q1r-2s3t-4u5v-6w7x-8y9z0a1b2c3d",
+      "name": "Reminder Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1400, 300]
+    }
+  ],
+  "connections": {
+    "0g1h2i3j-4k5l-6m7n-8o9p-0q1r2s3t4u5v": {
+      "main": [
+        [
+          {
+            "node": "1h2i3j4k-5l6m-7n8o-9p0q-1r2s3t4u5v6w",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1h2i3j4k-5l6m-7n8o-9p0q-1r2s3t4u5v6w": {
+      "main": [
+        [
+          {
+            "node": "2i3j4k5l-6m7n-8o9p-0q1r-2s3t4u5v6w7x",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "3j4k5l6m-7n8o-9p0q-1r2s-3t4u5v6w7x8y",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2i3j4k5l-6m7n-8o9p-0q1r-2s3t4u5v6w7x": {
+      "main": [
+        [
+          {
+            "node": "4k5l6m7n-8o9p-0q1r-2s3t-4u5v6w7x8y9z",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3j4k5l6m-7n8o-9p0q-1r2s-3t4u5v6w7x8y": {
+      "main": [
+        [
+          {
+            "node": "4k5l6m7n-8o9p-0q1r-2s3t-4u5v6w7x8y9z",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "5l6m7n8o-9p0q-1r2s-3t4u-5v6w7x8y9z0a",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5l6m7n8o-9p0q-1r2s-3t4u-5v6w7x8y9z0a": {
+      "main": [
+        [
+          {
+            "node": "6m7n8o9p-0q1r-2s3t-4u5v-6w7x8y9z0a1b",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6m7n8o9p-0q1r-2s3t-4u5v-6w7x8y9z0a1b": {
+      "main": [
+        [
+          {
+            "node": "7n8o9p0q-1r2s-3t4u-5v6w-7x8y9z0a1b2c",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7n8o9p0q-1r2s-3t4u-5v6w-7x8y9z0a1b2c": {
+      "main": [
+        [
+          {
+            "node": "8o9p0q1r-2s3t-4u5v-6w7x-8y9z0a1b2c3d",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveDataExecution": "all",
+    "saveManualExecution": true,
+    "callerPolicy": "owner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "1"
+}

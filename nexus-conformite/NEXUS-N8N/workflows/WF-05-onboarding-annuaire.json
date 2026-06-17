@@ -1,0 +1,183 @@
+{
+  "name": "WF-05 — Onboarding Prestataire Annuaire",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe-subscription-new",
+        "authentication": "none",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-subscription",
+      "name": "Webhook — Nouvel abonnement Stripe",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "nexus-subscription-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "customer.subscription.created",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "check-subscription-type",
+      "name": "Vérifier type abonnement",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.data?.object || {};\nconst plan = data.plan?.nickname || 'Standard';\nconst isPremium = plan.toLowerCase().includes('premium');\nreturn [{\n  json: {\n    customerId: data.customer,\n    customerEmail: data.customer_email || '',\n    customerName: data.customer_name || 'Prestataire',\n    plan: isPremium ? 'Premium (149€/mois)' : 'Standard (49€/mois)',\n    isPremium,\n    subscriptionId: data.id,\n    timestamp: new Date().toLocaleString('fr-FR')\n  }\n}];"
+      },
+      "id": "parse-subscription",
+      "name": "Parser données prestataire",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "bonjour@nexusconformite.fr",
+        "toEmail": "={{ $json.customerEmail }}",
+        "subject": "🎉 Bienvenue dans l'annuaire NEXUS CONFORMITÉ !",
+        "emailType": "html",
+        "message": "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>\n<h2 style='color:#1A3A5C;'>Bienvenue dans l'annuaire NEXUS CONFORMITÉ !</h2>\n<p>Bonjour {{ $json.customerName }},</p>\n<p>Votre inscription à l'annuaire NEXUS CONFORMITÉ est confirmée !</p>\n<p><strong>Plan souscrit :</strong> {{ $json.plan }}</p>\n<h3 style='color:#0D9488;'>Prochaines étapes :</h3>\n<ol>\n<li>Nous créons votre fiche dans les 24h</li>\n<li>Vous recevrez un email pour valider votre fiche</li>\n<li>Votre profil sera visible sur nexusconformite.fr/annuaire</li>\n</ol>\n<p>📧 Des questions ? Répondez directement à cet email.</p>\n<p>Merci de votre confiance,<br><strong>L'équipe NEXUS CONFORMITÉ</strong></p>\n<hr><p style='font-size:12px;color:#64748B;'>NEXUS CONFORMITÉ — Hub réglementaire TPE/PME France</p>\n</body></html>"
+      },
+      "id": "email-confirmation",
+      "name": "Email — Confirmation prestataire",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [900, 100],
+      "credentials": { "smtp": { "id": "brevo-smtp-creds", "name": "Brevo SMTP NEXUS" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WORDPRESS_URL }}/wp-json/wp/v2/posts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "title", "value": "={{ '[ANNUAIRE] ' + $json.customerName }}" },
+            { "name": "content", "value": "Fiche à compléter pour : {{ $json.customerName }}\\nPlan : {{ $json.plan }}\\nEmail : {{ $json.customerEmail }}\\nAbonnement ID : {{ $json.subscriptionId }}" },
+            { "name": "status", "value": "draft" },
+            { "name": "categories", "value": "[5]" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wp-create-fiche",
+      "name": "WP — Créer fiche prestataire",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "credentials": { "httpHeaderAuth": { "id": "wp-api-key", "name": "WordPress API NEXUS" } }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "🏢 *NOUVEAU PRESTATAIRE ANNUAIRE*\n\n👤 *Nom :* {{ $json.customerName }}\n📧 *Email :* {{ $json.customerEmail }}\n💼 *Plan :* {{ $json.plan }}\n\n⚠️ *ACTION :* Compléter et publier la fiche WP\n🔗 WordPress Admin → Articles → Brouillons",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "telegram-new-prestataire",
+      "name": "Telegram — Nouveau prestataire",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [900, 500],
+      "credentials": { "telegramApi": { "id": "telegram-bot-creds", "name": "NEXUS Bot Telegram" } }
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 10 * * *" }] }
+      },
+      "id": "cron-relance",
+      "name": "Cron — Vérif fiches 24h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 580]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.WORDPRESS_URL }}/wp-json/wp/v2/posts?status=draft&categories=5&per_page=10",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "check-draft-fiches",
+      "name": "Vérifier fiches non publiées",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 580],
+      "credentials": { "httpHeaderAuth": { "id": "wp-api-key", "name": "WordPress API NEXUS" } }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            { "leftValue": "={{ $json.length }}", "rightValue": 0, "operator": { "type": "number", "operation": "gt" } }
+          ]
+        }
+      },
+      "id": "has-pending-fiches",
+      "name": "Fiches en attente ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 580]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "⏰ *RAPPEL — Fiches annuaire non publiées*\n\n{{ $json.length }} fiche(s) en attente de publication dans WordPress.\n\n👉 Publier sur : {{ $env.WORDPRESS_URL }}/wp-admin",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "telegram-relance-fiches",
+      "name": "Telegram — Relance fiches",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [900, 640],
+      "credentials": { "telegramApi": { "id": "telegram-bot-creds", "name": "NEXUS Bot Telegram" } }
+    }
+  ],
+  "connections": {
+    "Webhook — Nouvel abonnement Stripe": { "main": [[{ "node": "Vérifier type abonnement", "type": "main", "index": 0 }]] },
+    "Vérifier type abonnement": {
+      "main": [
+        [{ "node": "Parser données prestataire", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Parser données prestataire": {
+      "main": [
+        [
+          { "node": "Email — Confirmation prestataire", "type": "main", "index": 0 },
+          { "node": "WP — Créer fiche prestataire", "type": "main", "index": 0 },
+          { "node": "Telegram — Nouveau prestataire", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Cron — Vérif fiches 24h": { "main": [[{ "node": "Vérifier fiches non publiées", "type": "main", "index": 0 }]] },
+    "Vérifier fiches non publiées": { "main": [[{ "node": "Fiches en attente ?", "type": "main", "index": 0 }]] },
+    "Fiches en attente ?": {
+      "main": [
+        [{ "node": "Telegram — Relance fiches", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "NEXUS" }, { "name": "Annuaire" }],
+  "meta": { "description": "Quand un prestataire souscrit à l'annuaire via Stripe : email de confirmation auto, brouillon WP créé, alerte Telegram. Rappel quotidien si des fiches restent en brouillon >24h." }
+}

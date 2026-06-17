@@ -1,0 +1,74 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g. 0.1.0)'
+        required: true
+        default: '0.1.0'
+
+env:
+  FLUTTER_VERSION: '3.19.0'
+  APP_VERSION: ${{ github.event.inputs.version || '0.1.0' }}
+
+jobs:
+  build-windows:
+    name: Build Windows App + Installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter test test/unit/ test/widget/ --reporter=compact
+      - run: flutter build windows --release
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Update version in Inno Setup script
+        shell: pwsh
+        run: |
+          (Get-Content installer/windows/sortia_installer.iss) `
+            -replace 'AppVersion=.*', "AppVersion=${{ env.APP_VERSION }}" `
+            | Set-Content installer/windows/sortia_installer.iss
+
+      - name: Build installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            installer/windows/sortia_installer.iss `
+            /O"build\windows\installer" `
+            /F"Sortia-Setup-${{ env.APP_VERSION }}-Windows"
+
+      - name: Generate checksum
+        shell: pwsh
+        run: |
+          $hash = Get-FileHash "build\windows\installer\Sortia-Setup-${{ env.APP_VERSION }}-Windows.exe" -Algorithm SHA256
+          $hash.Hash | Out-File "build\windows\installer\SHA256SUMS.txt"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sortia-windows-installer-${{ env.APP_VERSION }}
+          path: |
+            build/windows/installer/Sortia-Setup-*.exe
+            build/windows/installer/SHA256SUMS.txt
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/windows/installer/Sortia-Setup-*.exe
+            build/windows/installer/SHA256SUMS.txt
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,311 @@
+{
+  "name": "WF-02 — VEILLE LÉGISLATIVE",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "0 7 * * *"
+      },
+      "id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+      "name": "Cron Daily 7AM",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.legifrance.gouv.fr/feed/rss",
+        "options": {}
+      },
+      "id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+      "name": "Fetch Legifrance RSS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        300,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.cnil.fr/feed.rss",
+        "options": {}
+      },
+      "id": "3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+      "name": "Fetch CNIL RSS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        300,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.ssi.gouv.fr/feed/",
+        "options": {}
+      },
+      "id": "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+      "name": "Fetch SSI RSS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        300,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://eur-lex.europa.eu/rss/eurlex-new.rss",
+        "options": {}
+      },
+      "id": "5e6f7g8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t",
+      "name": "Fetch EUR-Lex RSS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        300,
+        650
+      ]
+    },
+    {
+      "parameters": {
+        "expression": "{\n  \"articles\": $json,\n  \"filtered\": $json.filter(item => {\n    const text = (item.title + ' ' + item.description).toLowerCase();\n    const keywords = ['facturation', 'nis2', 'rgpd', 'comptabilité', 'conformité'];\n    return keywords.some(kw => text.includes(kw));\n  })\n}",
+        "options": {}
+      },
+      "id": "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u",
+      "name": "Filter Keywords",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        550,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-haiku-4-5-20251001"
+            },
+            {
+              "name": "max_tokens",
+              "value": "150"
+            },
+            {
+              "name": "messages",
+              "value": "[{\"role\": \"user\", \"content\": \"Résume en moins de 150 tokens: {{ $json.filtered[0].title }} - {{ $json.filtered[0].description }}\"}]"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "id": "7g8h9i0j-1k2l-3m4n-5o6p-7q8r9s0t1u2v",
+      "name": "Claude Haiku Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        750,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "{{ $env.TELEGRAM_CHAT_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "🚨 Nouvelle réglementation: {{ $json.filtered[0].title }}"
+            }
+          ]
+        }
+      },
+      "id": "8h9i0j1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w",
+      "name": "Telegram Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        950,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "{{ $env.WP_API_URL }}/wp-json/wp/v2/posts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "basicAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "{{ $json.filtered[0].title }}"
+            },
+            {
+              "name": "content",
+              "value": "{{ $json.filtered[0].description }}"
+            },
+            {
+              "name": "status",
+              "value": "draft"
+            }
+          ]
+        }
+      },
+      "id": "9i0j1k2l-3m4n-5o6p-7q8r-9s0t1u2v3w4x",
+      "name": "Create WordPress Draft",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1150,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p": {
+      "main": [
+        [
+          {
+            "node": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "5e6f7g8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q": {
+      "main": [
+        [
+          {
+            "node": "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r": {
+      "main": [
+        [
+          {
+            "node": "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s": {
+      "main": [
+        [
+          {
+            "node": "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5e6f7g8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t": {
+      "main": [
+        [
+          {
+            "node": "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u": {
+      "main": [
+        [
+          {
+            "node": "7g8h9i0j-1k2l-3m4n-5o6p-7q8r9s0t1u2v",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7g8h9i0j-1k2l-3m4n-5o6p-7q8r9s0t1u2v": {
+      "main": [
+        [
+          {
+            "node": "8h9i0j1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8h9i0j1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w": {
+      "main": [
+        [
+          {
+            "node": "9i0j1k2l-3m4n-5o6p-7q8r-9s0t1u2v3w4x",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveDataExecution": "all",
+    "saveManualExecution": true,
+    "callerPolicy": "owner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "1"
+}

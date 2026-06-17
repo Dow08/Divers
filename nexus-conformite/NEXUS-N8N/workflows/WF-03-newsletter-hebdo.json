@@ -1,0 +1,109 @@
+{
+  "name": "WF-03 — Newsletter Hebdomadaire Auto",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 6 * * 1" }] }
+      },
+      "id": "cron-newsletter",
+      "name": "Cron — Lundi 6h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "list",
+        "spreadsheetId": { "__rl": true, "mode": "id", "value": "={{ $env.GOOGLE_SHEETS_ID }}" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Veille" },
+        "filtersUI": {},
+        "options": { "returnFirstMatch": false }
+      },
+      "id": "get-veille-data",
+      "name": "Récupérer veille semaine",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [460, 300],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "google-sheets-creds", "name": "Google Sheets NEXUS" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst thisWeek = items.slice(-5);\nconst actu = thisWeek.map(i => `- ${i.json.titre || i.json.title || 'Article sans titre'}`).join('\\n');\nconst date = new Date();\nconst weekNum = Math.ceil(date.getDate() / 7);\nreturn [{ json: { actusSemaine: actu, semaine: `S${weekNum}`, mois: date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) } }];"
+      },
+      "id": "prepare-context",
+      "name": "Préparer contexte newsletter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "model": "claude-haiku-4-5-20251001",
+        "messages": {
+          "values": [
+            {
+              "content": "Tu es le rédacteur de la newsletter 'Conformité PME Hebdo' pour NEXUS CONFORMITÉ.\n\nRédige une newsletter professionnelle en français avec cette structure EXACTE (HTML email compatible) :\n\n<h2>📋 Conformité PME Hebdo — {{ $json.semaine }}</h2>\n<p><strong>Bonjour,</strong></p>\n<p>Voici les 3 points clés de la semaine en matière de conformité réglementaire pour votre entreprise.</p>\n\n<h3>🔑 1. [Point principal basé sur actualités]</h3>\n<p>[2-3 phrases actionnable pour dirigeant TPE/PME]</p>\n\n<h3>📌 2. Rappel deadline important</h3>\n<p>La <strong>facturation électronique</strong> devient obligatoire le 1er septembre 2026 pour la réception. Avez-vous choisi votre Plateforme de Dématérialisation Partenaire (PDP) ? <a href='https://nexusconformite.fr/comparateur-pdp'>Comparez les 20 meilleures solutions ici →</a></p>\n\n<h3>🛡️ 3. NIS2 — Action recommandée cette semaine</h3>\n<p>[Conseil pratique NIS2 concret pour PME]</p>\n\n<hr>\n<p>📦 <em>Besoin d'un plan d'action complet ? <a href='https://nexusconformite.fr/pack-conformite'>Pack Conformité TPE/PME 2026 — 67€</a> (checklist, guides, templates).</em></p>\n<p>Bonne semaine,<br>L'équipe NEXUS CONFORMITÉ</p>\n\nActualités de la semaine à intégrer :\n{{ $json.actusSemaine }}\n\nTon newsletter doit être en HTML valide, ton professionnel mais accessible, jamais de jargon juridique complexe. Max 400 mots.",
+              "role": "user"
+            }
+          ]
+        },
+        "options": { "maxTokens": 800 }
+      },
+      "id": "claude-newsletter",
+      "name": "Claude Haiku — Rédiger newsletter",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [900, 300],
+      "credentials": { "anthropicApi": { "id": "anthropic-api-creds", "name": "Claude API NEXUS" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.beehiiv.com/v2/publications/{{ $env.BEEHIIV_PUBLICATION_ID }}/posts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "subject", "value": "={{ '📋 Conformité PME — ' + $('Préparer contexte newsletter').item.json.semaine + ' ' + $('Préparer contexte newsletter').item.json.mois }}" },
+            { "name": "content.html", "value": "={{ $json.text }}" },
+            { "name": "status", "value": "draft" },
+            { "name": "audience", "value": "free" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "beehiiv-draft",
+      "name": "Beehiiv — Créer draft newsletter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300],
+      "credentials": { "httpHeaderAuth": { "id": "beehiiv-api-key", "name": "Beehiiv API NEXUS" } }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "📧 *Newsletter NEXUS prête !*\n\n✅ Draft créé dans Beehiiv\n📅 Envoi programmé mardi 8h\n\n⚠️ *ACTION REQUISE* : Valide et programme l'envoi sur app.beehiiv.com\n\nDélai : avant ce soir 22h",
+        "additionalFields": { "parse_mode": "Markdown" }
+      },
+      "id": "telegram-newsletter-ready",
+      "name": "Telegram — Newsletter prête",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1340, 300],
+      "credentials": { "telegramApi": { "id": "telegram-bot-creds", "name": "NEXUS Bot Telegram" } }
+    }
+  ],
+  "connections": {
+    "Cron — Lundi 6h": { "main": [[{ "node": "Récupérer veille semaine", "type": "main", "index": 0 }]] },
+    "Récupérer veille semaine": { "main": [[{ "node": "Préparer contexte newsletter", "type": "main", "index": 0 }]] },
+    "Préparer contexte newsletter": { "main": [[{ "node": "Claude Haiku — Rédiger newsletter", "type": "main", "index": 0 }]] },
+    "Claude Haiku — Rédiger newsletter": { "main": [[{ "node": "Beehiiv — Créer draft newsletter", "type": "main", "index": 0 }]] },
+    "Beehiiv — Créer draft newsletter": { "main": [[{ "node": "Telegram — Newsletter prête", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "NEXUS" }, { "name": "Newsletter" }],
+  "meta": { "description": "Chaque lundi à 6h : récupère l'actu de la semaine, génère la newsletter via Claude Haiku, crée un draft dans Beehiiv et notifie Telegram pour validation humaine avant envoi mardi 8h." }
+}

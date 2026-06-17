@@ -1,0 +1,212 @@
+{
+  "version": "3.0",
+  "lastUpdated": "2026-04-20",
+  "totalSkills": 8,
+  "location": "/sessions/nice-sweet-carson/mnt/skills-github/",
+  "status": "VERIFIED - All 8 skills from actual folders",
+  "skills": [
+    {
+      "id": "excalidraw-diagram",
+      "name": "Excalidraw Diagram",
+      "command": "/excalidraw",
+      "aliases": ["/diagram", "/draw", "/excalidraw-diagram"],
+      "folder": "excalidraw-diagram",
+      "category": "Visualization",
+      "description": "Create Excalidraw diagram JSON files that make visual arguments",
+      "capabilities": [
+        "Workflow visualization",
+        "Architecture diagrams",
+        "Concept visualization",
+        "Technical diagrams"
+      ],
+      "triggers": [
+        "crée un diagramme",
+        "visualise",
+        "architecture diagram"
+      ]
+    },
+    {
+      "id": "frontend-design",
+      "name": "Frontend Design",
+      "command": "/frontend",
+      "aliases": ["/design", "/ui", "/web-design", "/frontend-design"],
+      "folder": "frontend-design",
+      "category": "Design & Frontend",
+      "description": "Create distinctive, production-grade frontend interfaces with high design quality",
+      "capabilities": [
+        "Web components",
+        "Web pages",
+        "Web applications",
+        "High-quality design",
+        "Production-grade code"
+      ],
+      "triggers": [
+        "crée une interface",
+        "design frontend",
+        "build a web page"
+      ]
+    },
+    {
+      "id": "pair-programmer-cyber-senior",
+      "name": "Pair Programmer Cyber Senior",
+      "command": "/pair-cyber",
+      "aliases": ["/pair-senior", "/cyber-senior", "/coding-mentor"],
+      "folder": "pair-programmer-cyber-senior",
+      "category": "Development & Security",
+      "description": "Senior Cybersecurity Professor + Fullstack Developer for pair programming",
+      "capabilities": [
+        "Pair programming",
+        "Code review sécurisé",
+        "Debugging socratique",
+        "Security analysis",
+        "Architecture review",
+        "OWASP & CVE"
+      ],
+      "triggers": [
+        "aide-moi à coder",
+        "revois mon code",
+        "c'est sécurisé ?"
+      ]
+    },
+    {
+      "id": "professeur-cyber",
+      "name": "Professeur Cyber",
+      "command": "/cyber",
+      "aliases": ["/mentor", "/code-review", "/security", "/pair-programming"],
+      "folder": "professeur-cyber",
+      "category": "Development & Security",
+      "description": "Senior Cybersecurity Professor + Fullstack Developer (Python & Node.js)",
+      "capabilities": [
+        "Pair programming",
+        "Code review",
+        "Security analysis",
+        "Architecture review",
+        "Clean Code & SOLID",
+        "Encryption & secrets"
+      ],
+      "triggers": [
+        "aide-moi à coder",
+        "revois mon code",
+        "c'est sécurisé ?",
+        "mentor"
+      ]
+    },
+    {
+      "id": "shannon",
+      "name": "Shannon — AI Pentester",
+      "command": "/shannon",
+      "aliases": ["/pentest", "/security-audit", "/vuln-scan", "/exploit"],
+      "folder": "shannon",
+      "category": "Security & Pentesting",
+      "description": "Autonomous AI pentester for web apps and APIs — white-box security assessments",
+      "capabilities": [
+        "Source code analysis",
+        "Attack vector identification",
+        "Real exploit execution",
+        "Vulnerability proof",
+        "White-box assessments",
+        "API pentesting"
+      ],
+      "triggers": [
+        "shannon",
+        "pentest",
+        "security audit",
+        "vuln scan",
+        "find exploits"
+      ]
+    },
+    {
+      "id": "skill-cour-notion",
+      "name": "Skill Cours Notion",
+      "command": "/skill-cours",
+      "aliases": ["/course", "/notion-course", "/create-course"],
+      "folder": "skill-cour-notion",
+      "category": "Learning & Education",
+      "description": "Transform cybersecurity content into structured course in Notion",
+      "capabilities": [
+        "Content transformation",
+        "Cybersecurity courses",
+        "Notion integration",
+        "Pedagogical structure",
+        "9-section format",
+        "Course archiving"
+      ],
+      "triggers": [
+        "transforme ce contenu en cours",
+        "crée un cours sur",
+        "structure ce contenu"
+      ]
+    },
+    {
+      "id": "tpm-devsecops",
+      "name": "TPM DevSecOps",
+      "command": "/tpm",
+      "aliases": ["/project", "/devsecops", "/sprint", "/backlog", "/pm"],
+      "folder": "tpm-devsecops",
+      "category": "Project Management",
+      "description": "Technical Project Manager + DevSecOps for software projects",
+      "capabilities": [
+        "Project planning",
+        "Backlog management",
+        "Sprint tracking",
+        "Security-by-design",
+        "CI/CD validation",
+        "Architecture decisions"
+      ],
+      "triggers": [
+        "planifie ce projet",
+        "crée un backlog",
+        "review CI/CD"
+      ]
+    },
+    {
+      "id": "website-tester",
+      "name": "Website Tester",
+      "command": "/website-test",
+      "aliases": ["/qa", "/audit-site", "/test-web", "/website-qa"],
+      "folder": "website-tester",
+      "category": "Quality Assurance",
+      "description": "Comprehensive QA audit, accessibility, performance, and security testing",
+      "capabilities": [
+        "Functional testing",
+        "WCAG audit",
+        "Performance testing",
+        "Security audit",
+        "Responsive design testing",
+        "Bilingual reports"
+      ],
+      "triggers": [
+        "teste ce site",
+        "audit de QA",
+        "vérifier l'accessibilité"
+      ]
+    }
+  ],
+  "categories": {
+    "Visualization": { "count": 1, "skills": ["excalidraw-diagram"] },
+    "Design & Frontend": { "count": 1, "skills": ["frontend-design"] },
+    "Development & Security": { "count": 2, "skills": ["pair-programmer-cyber-senior", "professeur-cyber"] },
+    "Security & Pentesting": { "count": 1, "skills": ["shannon"] },
+    "Learning & Education": { "count": 1, "skills": ["skill-cour-notion"] },
+    "Project Management": { "count": 1, "skills": ["tpm-devsecops"] },
+    "Quality Assurance": { "count": 1, "skills": ["website-tester"] }
+  },
+  "stats": {
+    "totalSkills": 8,
+    "totalAliases": 25,
+    "categoriesCount": 7,
+    "commandsAvailable": true,
+    "integratedSkills": [
+      "excalidraw-diagram",
+      "frontend-design",
+      "pair-programmer-cyber-senior",
+      "professeur-cyber",
+      "shannon",
+      "skill-cour-notion",
+      "tpm-devsecops",
+      "website-tester"
+    ],
+    "verifiedDate": "2026-04-20",
+    "status": "FULLY INTEGRATED"
+  }
+}

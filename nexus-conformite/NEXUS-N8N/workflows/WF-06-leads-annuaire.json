@@ -1,0 +1,206 @@
+{
+  "name": "WF-06 — Gestion Leads Annuaire (Mise en relation)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-annuaire",
+        "authentication": "none",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-lead",
+      "name": "Webhook — Formulaire mise en relation",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "nexus-lead-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\nreturn [{\n  json: {\n    entrepriseName: body.entreprise || body.company || '',\n    contactName: body.nom || body.name || '',\n    contactEmail: body.email || '',\n    contactPhone: body.telephone || body.phone || '',\n    secteur: body.secteur || body.sector || '',\n    besoin: body.besoin || body.message || '',\n    prestataire: body.prestataire || body.prestataire_id || '',\n    timestamp: new Date().toLocaleString('fr-FR'),\n    leadId: 'LEAD-' + Date.now()\n  }\n}];"
+      },
+      "id": "parse-lead",
+      "name": "Parser données du lead",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "bonjour@nexusconformite.fr",
+        "toEmail": "={{ $json.contactEmail }}",
+        "subject": "✅ Votre demande de mise en relation NEXUS CONFORMITÉ",
+        "emailFormat": "html",
+        "html": "<!DOCTYPE html><html><body style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;\">\n<div style=\"background:#1A3A5C;padding:20px;border-radius:8px 8px 0 0;\">\n  <h2 style=\"color:#ffffff;margin:0;\">&#x2705; Demande bien re&#xe7;ue !</h2>\n</div>\n<div style=\"background:#f9fafb;padding:24px;border:1px solid #e5e7eb;border-radius:0 0 8px 8px;\">\n  <p>Bonjour {{ $json.contactName }},</p>\n  <p>Nous avons bien re&#xe7;u votre demande de mise en relation pour :</p>\n  <table style=\"width:100%;border-collapse:collapse;margin:16px 0;\">\n    <tr><td style=\"padding:8px;border:1px solid #e5e7eb;font-weight:bold;background:#fff;\">Entreprise</td><td style=\"padding:8px;border:1px solid #e5e7eb;background:#fff;\">{{ $json.entrepriseName }}</td></tr>\n    <tr><td style=\"padding:8px;border:1px solid #e5e7eb;font-weight:bold;background:#f9fafb;\">Secteur</td><td style=\"padding:8px;border:1px solid #e5e7eb;background:#f9fafb;\">{{ $json.secteur }}</td></tr>\n    <tr><td style=\"padding:8px;border:1px solid #e5e7eb;font-weight:bold;background:#fff;\">Besoin</td><td style=\"padding:8px;border:1px solid #e5e7eb;background:#fff;\">{{ $json.besoin }}</td></tr>\n  </table>\n  <p>Un prestataire qualifi&#xe9; vous contactera <strong>dans les 48h ouvr&#xe9;es</strong>.</p>\n  <hr style=\"border:none;border-top:1px solid #e5e7eb;margin:20px 0;\">\n  <p style=\"font-size:12px;color:#6b7280;\"><em>NEXUS CONFORMIT&#xc9; ne peut &#xea;tre tenu responsable de la qualit&#xe9; des prestations des professionnels r&#xe9;f&#xe9;renc&#xe9;s.</em></p>\n</div>\n</body></html>"
+      },
+      "id": "email-confirmation-lead",
+      "name": "Email — Confirmation au prospect",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        680,
+        160
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "brevo-smtp-creds",
+          "name": "Brevo SMTP NEXUS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "leads@nexusconformite.fr",
+        "toEmail": "={{ $env.ADMIN_EMAIL }}",
+        "subject": "🤝 Nouveau lead annuaire — {{ $json.entrepriseName }}",
+        "emailFormat": "html",
+        "html": "<h3 style=\"color:#1A3A5C;\">&#x1f91d; Nouveau lead &#x2014; {{ $json.entrepriseName }}</h3>\n<table style=\"border-collapse:collapse;width:100%;\">\n<tr><td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">ID Lead</td><td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.leadId }}</td></tr>\n<tr><td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Entreprise</td><td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.entrepriseName }}</td></tr>\n<tr><td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Contact</td><td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.contactName }}</td></tr>\n<tr><td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Email</td><td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.contactEmail }}</td></tr>\n<tr><td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">T&#xe9;l</td><td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.contactPhone }}</td></tr>\n<tr><td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Secteur</td><td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.secteur }}</td></tr>\n<tr><td style=\"padding:8px;border:1px solid #ddd;font-weight:bold;\">Besoin</td><td style=\"padding:8px;border:1px solid #ddd;\">{{ $json.besoin }}</td></tr>\n</table>"
+      },
+      "id": "email-admin-lead",
+      "name": "Email — Notifier admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "brevo-smtp-creds",
+          "name": "Brevo SMTP NEXUS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.GOOGLE_SHEETS_ID }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "leadId": "={{ $json.leadId }}",
+            "date": "={{ $json.timestamp }}",
+            "entreprise": "={{ $json.entrepriseName }}",
+            "contact": "={{ $json.contactName }}",
+            "email": "={{ $json.contactEmail }}",
+            "secteur": "={{ $json.secteur }}",
+            "besoin": "={{ $json.besoin }}",
+            "prestataire": "={{ $json.prestataire }}",
+            "statut": "En attente"
+          }
+        },
+        "options": {}
+      },
+      "id": "sheets-log-lead",
+      "name": "Sheets — Logger lead CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        680,
+        440
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-creds",
+          "name": "Google Sheets NEXUS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "🤝 *NOUVEAU LEAD ANNUAIRE*\n\n🏢 *Entreprise :* {{ $json.entrepriseName }}\n👤 *Contact :* {{ $json.contactName }}\n📧 *Email :* {{ $json.contactEmail }}\n🏭 *Secteur :* {{ $json.secteur }}\n💬 *Besoin :* {{ $json.besoin }}\n\n🆔 Lead ID : {{ $json.leadId }}\n⏰ {{ $json.timestamp }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-new-lead",
+      "name": "Telegram — Nouveau lead",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        580
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-creds",
+          "name": "NEXUS Bot Telegram"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook — Formulaire mise en relation": {
+      "main": [
+        [
+          {
+            "node": "Parser données du lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser données du lead": {
+      "main": [
+        [
+          {
+            "node": "Email — Confirmation au prospect",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email — Notifier admin",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sheets — Logger lead CRM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram — Nouveau lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "NEXUS"
+    },
+    {
+      "name": "Annuaire"
+    },
+    {
+      "name": "Leads"
+    }
+  ],
+  "meta": {
+    "description": "Quand un formulaire de mise en relation est soumis : email de confirmation au prospect, notification admin, log Google Sheets CRM, alerte Telegram instantanée."
+  }
+}

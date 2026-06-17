@@ -1,0 +1,213 @@
+{
+  "name": "WF-11 — Monitoring Comparateur Prix Outils",
+  "nodes": [
+    {
+      "parameters": {
+        "expression": "{\"tools\":[{\"name\":\"Axonaut\",\"url\":\"https://www.axonaut.com/tarifs\",\"selector\":\".prix-principal\"},{\"name\":\"PayFit\",\"url\":\"https://www.payfit.com/tarifs\",\"selector\":\".pricing-card\"},{\"name\":\"Tiime\",\"url\":\"https://www.tiime.fr/tarification\",\"selector\":\".price-box\"},{\"name\":\"Pennylane\",\"url\":\"https://www.pennylane.io/tarifs\",\"selector\":\".pricing-tier\"},{\"name\":\"Shine\",\"url\":\"https://www.shine.fr/tarifs\",\"selector\":\".plan-price\"},{\"name\":\"Qonto\",\"url\":\"https://www.qonto.com/pricing\",\"selector\":\".pricing-option\"},{\"name\":\"YouSign\",\"url\":\"https://www.yousign.fr/tarifs\",\"selector\":\".offer-price\"},{\"name\":\"Legalstart\",\"url\":\"https://www.legalstart.fr/prestation\",\"selector\":\".service-price\"}]}"
+      },
+      "id": "tools_list",
+      "name": "Liste des outils à monitorer",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "httpRequest",
+        "requestMethod": "GET",
+        "url": "={{ $json.url }}",
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+          }
+        }
+      },
+      "id": "scrape_pricing_page",
+      "name": "Scraper — Récupérer page de prix",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        300,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-haiku-4-5-20251001"
+            },
+            {
+              "name": "max_tokens",
+              "value": "500"
+            },
+            {
+              "name": "messages",
+              "value": "[{\"role\": \"user\", \"content\": \"Analyse cette page HTML de tarification et extrais:\\n1. Prix principal (offre de base/starter)\\n2. Fonctionnalit\\u00e9s cl\\u00e9s (max 5)\\n3. Engagement minimum (annuel/mensuel)\\n4. Essai gratuit (oui/non/dur\\u00e9e)\\n\\nR\\u00e9ponds STRICTEMENT en JSON: {\\\"tool\\\": \\\"{{ $json.name }}\\\", \\\"price\\\": \\\"XX\\u20ac/mois\\\", \\\"features\\\": [...], \\\"commitment\\\": \\\"...\\\", \\\"trial\\\": \\\"...\\\"}\\n\\nHTML:\\n{{ $json.htmlContent }}\"}]"
+            }
+          ]
+        }
+      },
+      "id": "claude_extract_pricing",
+      "name": "Claude Haiku — Extraction tarifs",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        500,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "spreadsheetId": "={{ $env.SHEETS_ID_PRICING }}",
+        "resource": "spreadsheet",
+        "operation": "read",
+        "options": {
+          "range": "Tools!A:H"
+        }
+      },
+      "id": "sheets_read_history",
+      "name": "Sheets — Lire historique prix",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        700,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "any": [
+            {
+              "value1": "{{ $json.currentPrice }}",
+              "operation": "notEqual",
+              "value2": "{{ $json.previousPrice }}"
+            }
+          ]
+        }
+      },
+      "id": "if_price_changed",
+      "name": "SI prix a changé → Alerte",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        700,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/{{ $env.SLACK_WEBHOOK_ALERTS }}",
+        "body": "raw",
+        "bodyContent": "{\"text\":\":chart_with_upwards_trend: ALERTE PRIX — {{ $json.tool }}\",\"attachments\":[{\"color\":\"{{ $json.priceIncrease ? 'danger' : 'good' }}\",\"fields\":[{\"title\":\"Outil\",\"value\":\"{{ $json.tool }}\",\"short\":true},{\"title\":\"Ancien prix\",\"value\":\"{{ $json.previousPrice }}\",\"short\":true},{\"title\":\"Nouveau prix\",\"value\":\"{{ $json.currentPrice }}\",\"short\":true},{\"title\":\"Variation\",\"value\":\"{{ $json.priceChange }}\",\"short\":true},{\"title\":\"Fonctionnalités\",\"value\":\"{{ $json.features.join(', ') }}\"},{\"title\":\"Essai gratuit\",\"value\":\"{{ $json.trial }}\"}]}]}"
+      },
+      "id": "slack_alert",
+      "name": "Slack — Alerte changement",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "spreadsheetId": "={{ $env.SHEETS_ID_PRICING }}",
+        "resource": "spreadsheet",
+        "operation": "append",
+        "columns": "Date,Outil,PrixPrécédent,NouveauPrix,Variation,Fonctionnalités,Engagement,Essai",
+        "data": "{{ $json.date }},{{ $json.tool }},{{ $json.previousPrice }},{{ $json.currentPrice }},{{ $json.priceChange }},{{ $json.features.join(';') }},{{ $json.commitment }},{{ $json.trial }}"
+      },
+      "id": "sheets_append_history",
+      "name": "Sheets — Ajouter historique",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        900,
+        450
+      ]
+    }
+  ],
+  "connections": {
+    "tools_list": {
+      "main": [
+        [
+          {
+            "node": "scrape_pricing_page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scrape_pricing_page": {
+      "main": [
+        [
+          {
+            "node": "claude_extract_pricing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "claude_extract_pricing": {
+      "main": [
+        [
+          {
+            "node": "sheets_read_history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "sheets_read_history": {
+      "main": [
+        [
+          {
+            "node": "if_price_changed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if_price_changed": {
+      "main": [
+        [
+          {
+            "node": "slack_alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "sheets_append_history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

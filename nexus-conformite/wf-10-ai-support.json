@@ -1,0 +1,213 @@
+{
+  "name": "WF-10 — Support Email IA (Claude Haiku)",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "httpMethod": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendQuery": false,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.RESEND_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyParametersUi": "json",
+        "bodyParameters": {
+          "json": {
+            "from": "support@nexusconformite.fr",
+            "to": "{{ $json.senderEmail }}",
+            "subject": "Re: {{ $json.subject }}",
+            "html": "<p>Merci pour votre message.</p><p>{{ $json.autoResponse }}</p><p>Cordialement,<br/>Équipe Nexus Conformité</p>"
+          }
+        }
+      },
+      "id": "resend_autoresponse",
+      "name": "Resend — Auto-réponse",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        750,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-haiku-4-5-20251001"
+            },
+            {
+              "name": "max_tokens",
+              "value": "300"
+            },
+            {
+              "name": "messages",
+              "value": "[{\"role\": \"user\", \"content\": \"Tu es un assistant support RGPD/conformit\\u00e9 pour Nexus Conformit\\u00e9.\\n\\nClassifie RAPIDEMENT ce message client en UNE SEULE cat\\u00e9gorie:\\n- KIT_RGPD: demande sur le Kit RGPD\\n- COMPARATEUR: question sur les prix/outils de conformit\\u00e9\\n- FACTURATION: facture \\u00e9lectronique (loi 2026)\\n- NIS2: cybers\\u00e9curit\\u00e9/directive NIS2\\n- AFFILIATION: partenariat/affiliation\\n- AUTRE: autre sujet\\n\\nR\\u00e9ponds STRICTEMENT au format JSON: {\\\"category\\\": \\\"CAT\\u00c9GORIE\\\", \\\"confidence\\\": 0.95, \\\"suggestion\\\": \\\"Texte d'auto-r\\u00e9ponse personnalis\\u00e9e (2-3 phrases max)\\\"} \\n\\nMessage client:\\n{{ $json.emailBody }}\"}]"
+            }
+          ]
+        }
+      },
+      "id": "claude_classify",
+      "name": "Claude Haiku — Classification",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "get",
+        "messageId": "={{ $json.messageId }}"
+      },
+      "id": "gmail_receive",
+      "name": "Gmail — Recevoir email",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        100,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/{{ $env.SLACK_WEBHOOK }}",
+        "body": "raw",
+        "bodyContent": "{\n  \"text\": \":warning: ESCALADE — Support email\",\n  \"attachments\": [\n    {\n      \"color\": \"danger\",\n      \"fields\": [\n        {\"title\": \"De\", \"value\": \"{{ $json.senderEmail }}\", \"short\": true},\n        {\"title\": \"Catégorie\", \"value\": \"{{ $json.category }}\", \"short\": true},\n        {\"title\": \"Sujet\", \"value\": \"{{ $json.subject }}\"},\n        {\"title\": \"Message\", \"value\": \"{{ $json.emailBody }}\"}\n      ]\n    }\n  ]\n}"
+      },
+      "id": "slack_escalate",
+      "name": "Slack — Escalade support",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        750,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "any": [
+            {
+              "value1": "{{ $json.confidence }}",
+              "operation": "lessThan",
+              "value2": 0.7
+            }
+          ]
+        }
+      },
+      "id": "if_escalate",
+      "name": "SI confiance < 70% → Escalade",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        550,
+        350
+      ]
+    },
+    {
+      "parameters": {
+        "spreadsheetId": "={{ $env.SHEETS_ID_SUPPORT }}",
+        "range": "Tickets!A1",
+        "options": {}
+      },
+      "id": "sheets_log",
+      "name": "Google Sheets — Log tickets",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        750,
+        550
+      ]
+    }
+  ],
+  "connections": {
+    "gmail_receive": {
+      "main": [
+        [
+          {
+            "node": "claude_classify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "claude_classify": {
+      "main": [
+        [
+          {
+            "node": "if_escalate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if_escalate": {
+      "main": [
+        [
+          {
+            "node": "resend_autoresponse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "slack_escalate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "resend_autoresponse": {
+      "main": [
+        [
+          {
+            "node": "sheets_log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "{{ $env.N8N_INSTANCE_ID }}",
+    "description": "Reçoit les emails support, classifie avec Claude Haiku, auto-répond ou escalade à Slack selon la confiance de classification"
+  }
+}

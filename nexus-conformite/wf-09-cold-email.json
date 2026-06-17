@@ -1,0 +1,480 @@
+{
+  "name": "WF-09 — COLD EMAIL B2B",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "8i9j0k1l-2m3n-4o5p-6q7r-8s9t0u1v2w3x",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/{{ $env.GOOGLE_SHEETS_ID }}/values/b2b-csv",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "options": {}
+      },
+      "id": "9j0k1l2m-3n4o-5p6q-7r8s-9t0u1v2w3x4y",
+      "name": "Load CSV Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/{{ $env.GOOGLE_SHEETS_ID }}/values/blacklist",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "options": {}
+      },
+      "id": "0k1l2m3n-4o5p-6q7r-8s9t-0u1v2w3x4y5z",
+      "name": "Load Blacklist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        300,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "expression": "{\n  \"csv_data\": $json[0].values || [],\n  \"blacklist\": $json[1].values.map(row => row[0]) || []\n}",
+        "options": {}
+      },
+      "id": "1l2m3n4o-5p6q-7r8s-9t0u-1v2w3x4y5z6a",
+      "name": "Merge Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        550,
+        375
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "{{ !$json.blacklist.includes($json.email) }}",
+            "operator": {
+              "name": "filter.operator.equals",
+              "value": "equals"
+            },
+            "rightValue": true
+          }
+        }
+      },
+      "id": "2m3n4o5p-6q7r-8s9t-0u1v-2w3x4y5z6a7b",
+      "name": "Check Not Blacklisted",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        800,
+        375
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-haiku-4-5-20251001"
+            },
+            {
+              "name": "max_tokens",
+              "value": "60"
+            },
+            {
+              "name": "messages",
+              "value": "[{\"role\": \"user\", \"content\": \"Génère un email commercial court et personnalisé pour {{ $json.company }} ({{ $json.siret }}). Sujet: Améliorer votre conformité réglementaire. Signe Claude.\"}]"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "id": "3n4o5p6q-7r8s-9t0u-1v2w-3x4y5z6a7b8c",
+      "name": "Personalize Email Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "expression": "{\n  \"rate_limit\": {\n    \"limit\": 300,\n    \"period_hours\": 24,\n    \"current_hour\": new Date().getHours()\n  },\n  \"email_content\": $json.content\n}",
+        "options": {}
+      },
+      "id": "4o5p6q7r-8s9t-0u1v-2w3x-4y5z6a7b8c9d",
+      "name": "Check Rate Limit",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sender",
+              "value": "{\"name\": \"{{ $env.BREVO_FROM_NAME }}\", \"email\": \"{{ $env.BREVO_FROM_EMAIL }}\"}"
+            },
+            {
+              "name": "to",
+              "value": "[{\"email\": \"{{ $json.email }}\", \"name\": \"{{ $json.contact_name }}\"}]"
+            },
+            {
+              "name": "subject",
+              "value": "Améliorer votre conformité réglementaire"
+            },
+            {
+              "name": "htmlContent",
+              "value": "{{ $json.email_content }}"
+            },
+            {
+              "name": "tags",
+              "value": "[\"cold-email\", \"b2b\"]"
+            }
+          ]
+        }
+      },
+      "id": "5p6q7r8s-9t0u-1v2w-3x4y-5z6a7b8c9d0e",
+      "name": "Send via Brevo SMTP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/{{ $env.GOOGLE_SHEETS_ID }}/values/email-tracking:append",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "values",
+              "value": "[[\"{{ $json.email }}\", \"{{ $json.company }}\", \"{{ new Date().toISOString() }}\", \"sent\", \"pending\"]]"
+            }
+          ]
+        }
+      },
+      "id": "6q7r8s9t-0u1v-2w3x-4y5z-6a7b8c9d0e1f",
+      "name": "Track Email Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "expression": "{\n  \"contact\": {\n    \"email\": $json.email,\n    \"attributes\": {\n      \"INTERESTED\": true\n    },\n    \"tags\": [\"interested\"]\n  }\n}",
+        "options": {}
+      },
+      "id": "7r8s9t0u-1v2w-3x4y-5z6a-7b8c9d0e1f2g",
+      "name": "Prepare Tag Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1800,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/contacts/{{ $json.email }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "attributes",
+              "value": "{{ $json.contact.attributes }}"
+            },
+            {
+              "name": "updateEnabled",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "id": "8s9t0u1v-2w3x-4y5z-6a7b-8c9d0e1f2g3h",
+      "name": "Tag as Interested If Opened",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1800,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "waitValue": 259200
+      },
+      "id": "9t0u1v2w-3x4y-5z6a-7b8c-9d0e1f2g3h4i",
+      "name": "Wait 3 Days",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sender",
+              "value": "{\"name\": \"{{ $env.BREVO_FROM_NAME }}\", \"email\": \"{{ $env.BREVO_FROM_EMAIL }}\"}"
+            },
+            {
+              "name": "to",
+              "value": "[{\"email\": \"{{ $json.email }}\"}]"
+            },
+            {
+              "name": "subject",
+              "value": "Relance: Améliorer votre conformité"
+            },
+            {
+              "name": "htmlContent",
+              "value": "Bonjour,<p>Un suivi rapide concernant notre proposition précédente...</p>"
+            }
+          ]
+        }
+      },
+      "id": "0u1v2w3x-4y5z-6a7b-8c9d-0e1f2g3h4i5j",
+      "name": "Follow-up Email J+3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/{{ $env.GOOGLE_SHEETS_ID }}/values/blacklist:append",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "values",
+              "value": "[[\"{{ $json.email }}\", \"unsubscribed\", \"{{ new Date().toISOString() }}\"]]"
+            }
+          ]
+        }
+      },
+      "id": "1v2w3x4y-5z6a-7b8c-9d0e-1f2g3h4i5j6k",
+      "name": "Add to Blacklist on Unsubscribe",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1400,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "8i9j0k1l-2m3n-4o5p-6q7r-8s9t0u1v2w3x": {
+      "main": [
+        [
+          {
+            "node": "9j0k1l2m-3n4o-5p6q-7r8s-9t0u1v2w3x4y",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "0k1l2m3n-4o5p-6q7r-8s9t-0u1v2w3x4y5z",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9j0k1l2m-3n4o-5p6q-7r8s-9t0u1v2w3x4y": {
+      "main": [
+        [
+          {
+            "node": "1l2m3n4o-5p6q-7r8s-9t0u-1v2w3x4y5z6a",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "0k1l2m3n-4o5p-6q7r-8s9t-0u1v2w3x4y5z": {
+      "main": [
+        [
+          {
+            "node": "1l2m3n4o-5p6q-7r8s-9t0u-1v2w3x4y5z6a",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1l2m3n4o-5p6q-7r8s-9t0u-1v2w3x4y5z6a": {
+      "main": [
+        [
+          {
+            "node": "2m3n4o5p-6q7r-8s9t-0u1v-2w3x4y5z6a7b",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2m3n4o5p-6q7r-8s9t-0u1v-2w3x4y5z6a7b": {
+      "main": [
+        [
+          {
+            "node": "3n4o5p6q-7r8s-9t0u-1v2w-3x4y5z6a7b8c",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "1v2w3x4y-5z6a-7b8c-9d0e-1f2g3h4i5j6k",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3n4o5p6q-7r8s-9t0u-1v2w-3x4y5z6a7b8c": {
+      "main": [
+        [
+          {
+            "node": "4o5p6q7r-8s9t-0u1v-2w3x-4y5z6a7b8c9d",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4o5p6q7r-8s9t-0u1v-2w3x-4y5z6a7b8c9d": {
+      "main": [
+        [
+          {
+            "node": "5p6q7r8s-9t0u-1v2w-3x4y-5z6a7b8c9d0e",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5p6q7r8s-9t0u-1v2w-3x4y-5z6a7b8c9d0e": {
+      "main": [
+        [
+          {
+            "node": "6q7r8s9t-0u1v-2w3x-4y5z-6a7b8c9d0e1f",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6q7r8s9t-0u1v-2w3x-4y5z-6a7b8c9d0e1f": {
+      "main": [
+        [
+          {
+            "node": "7r8s9t0u-1v2w-3x4y-5z6a-7b8c9d0e1f2g",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "9t0u1v2w-3x4y-5z6a-7b8c-9d0e1f2g3h4i",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7r8s9t0u-1v2w-3x4y-5z6a-7b8c9d0e1f2g": {
+      "main": [
+        [
+          {
+            "node": "8s9t0u1v-2w3x-4y5z-6a7b-8c9d0e1f2g3h",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9t0u1v2w-3x4y-5z6a-7b8c-9d0e1f2g3h4i": {
+      "main": [
+        [
+          {
+            "node": "0u1v2w3x-4y5z-6a7b-8c9d-0e1f2g3h4i5j",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveDataExecution": "all",
+    "saveManualExecution": true,
+    "callerPolicy": "owner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "1"
+}

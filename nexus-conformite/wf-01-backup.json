@@ -1,0 +1,149 @@
+{
+  "name": "WF-01 — BACKUP AUTOMATIQUE",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "0 3 * * 0"
+      },
+      "id": "6d8f1a2c-9e3b-4f7c-8d1e-5a2f9c6b3e7d",
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "{{ $env.N8N_API_URL }}/rest/workflows",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "options": {}
+      },
+      "id": "a3f7c9d2-1b5e-4a8f-9c2d-7e5a1f3b6c9d",
+      "name": "Export N8N Workflows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "{{ $env.WP_API_URL }}/wp-json/wp/v2/posts?_fields=content,title,date,modified",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "basicAuth",
+        "options": {}
+      },
+      "id": "b8e2f4a1-3c7d-4e9b-5f2a-c1d6e8f3a7b2",
+      "name": "Export WordPress",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/drive/v3/files?uploadType=multipart",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "metadata",
+              "value": "{\"name\": \"backup-{{ $now.format('YYYY-MM-DD-HHmm') }}.json\", \"parents\": [\"{{ $env.GOOGLE_DRIVE_BACKUP_FOLDER }}\"]}"
+            },
+            {
+              "name": "file",
+              "value": "{{ $json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c5f9a3b7-2e6d-4f8c-1a5e-9b3c7d2f6e8a",
+      "name": "Upload to Google Drive",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "{{ $env.TELEGRAM_CHAT_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "✅ Backup effectué"
+            }
+          ]
+        }
+      },
+      "id": "d9e1b6c3-5f2a-4c7e-8d1f-3a5c9b2e7f4d",
+      "name": "Telegram Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "6d8f1a2c-9e3b-4f7c-8d1e-5a2f9c6b3e7d": {
+      "main": [
+        [
+          {
+            "node": "a3f7c9d2-1b5e-4a8f-9c2d-7e5a1f3b6c9d",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "a3f7c9d2-1b5e-4a8f-9c2d-7e5a1f3b6c9d": {
+      "main": [
+        [
+          {
+            "node": "b8e2f4a1-3c7d-4e9b-5f2a-c1d6e8f3a7b2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "b8e2f4a1-3c7d-4e9b-5f2a-c1d6e8f3a7b2": {
+      "main": [
+        [
+          {
+            "node": "c5f9a3b7-2e6d-4f8c-1a5e-9b3c7d2f6e8a",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "c5f9a3b7-2e6d-4f8c-1a5e-9b3c7d2f6e8a": {
+      "main": [
+        [
+          {
+            "node": "d9e1b6c3-5f2a-4c7e-8d1f-3a5c9b2e7f4d",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveDataExecution": "all",
+    "saveManualExecution": true,
+    "callerPolicy": "owner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "1"
+}

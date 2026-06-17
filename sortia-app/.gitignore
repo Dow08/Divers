@@ -1,0 +1,88 @@
+# ================================================================
+# SORTIA — .gitignore
+# ================================================================
+
+# Variables d'environnement — JAMAIS committer
+.env
+.env.local
+.env.staging
+.env.production
+*.env
+
+# Generated env config
+lib/core/config/env.dart
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# IDE
+.idea/
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# iOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Runner.xcworkspace
+**/ios/.generated/
+
+# Android
+**/android/gradle
+**/android/.gradle
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/key.properties
+**/android/*.jks
+**/android/*.keystore
+
+# Windows
+**/windows/flutter/generated_plugin_registrant.cpp
+**/windows/flutter/generated_plugin_registrant.h
+**/windows/flutter/generated_plugins.cmake
+
+# Logs & Coverage
+*.log
+coverage/
+lcov.info
+
+# Sécurité — Certificats et clés
+*.pem
+*.p12
+*.pfx
+*.cer
+*.crt
+*.key
+google-services.json
+GoogleService-Info.plist
+
+# Données sensibles
+supabase/.env
+supabase/config.toml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# Test artefacts
+test-results/

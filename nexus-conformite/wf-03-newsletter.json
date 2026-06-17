@@ -1,0 +1,191 @@
+{
+  "name": "WF-03 — NEWSLETTER HEBDO",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "0 6 * * 1"
+      },
+      "id": "1x2y3z4a-5b6c-7d8e-9f0g-1h2i3j4k5l6m",
+      "name": "Cron Monday 6AM",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/{{ $env.GOOGLE_SHEETS_ID }}/values/news",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "options": {}
+      },
+      "id": "2y3z4a5b-6c7d-8e9f-0g1h-2i3j4k5l6m7n",
+      "name": "Get News from Google Sheets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-haiku-4-5-20251001"
+            },
+            {
+              "name": "max_tokens",
+              "value": "800"
+            },
+            {
+              "name": "messages",
+              "value": "[{\"role\": \"user\", \"content\": \"Génère une newsletter hebdomadaire en HTML à partir de ces actualités: {{ $json.values }}. Ajoute des liens UTM: ?utm_source=newsletter&utm_medium=email&utm_campaign=weekly\"}]"
+            }
+          ]
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        }
+      },
+      "id": "3z4a5b6c-7d8e-9f0g-1h2i-3j4k5l6m7n8o",
+      "name": "Generate Newsletter Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        550,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.beehiiv.com/v2/publications/{{ $env.BEEHIIV_PUB_ID }}/drafts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "bearerToken",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "subject",
+              "value": "Veille Conformité - Semaine {{ $now.format('WW') }}"
+            },
+            {
+              "name": "content",
+              "value": "{{ $json.content }}"
+            }
+          ]
+        }
+      },
+      "id": "4a5b6c7d-8e9f-0g1h-2i3j-4k5l6m7n8o9p",
+      "name": "Create Beehiiv Draft",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot{{ $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "{{ $env.TELEGRAM_CHAT_ID }}"
+            },
+            {
+              "name": "text",
+              "value": "📧 Draft newsletter prêt"
+            }
+          ]
+        }
+      },
+      "id": "5b6c7d8e-9f0g-1h2i-3j4k-5l6m7n8o9p0q",
+      "name": "Telegram Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1050,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "1x2y3z4a-5b6c-7d8e-9f0g-1h2i3j4k5l6m": {
+      "main": [
+        [
+          {
+            "node": "2y3z4a5b-6c7d-8e9f-0g1h-2i3j4k5l6m7n",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2y3z4a5b-6c7d-8e9f-0g1h-2i3j4k5l6m7n": {
+      "main": [
+        [
+          {
+            "node": "3z4a5b6c-7d8e-9f0g-1h2i-3j4k5l6m7n8o",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3z4a5b6c-7d8e-9f0g-1h2i-3j4k5l6m7n8o": {
+      "main": [
+        [
+          {
+            "node": "4a5b6c7d-8e9f-0g1h-2i3j-4k5l6m7n8o9p",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4a5b6c7d-8e9f-0g1h-2i3j-4k5l6m7n8o9p": {
+      "main": [
+        [
+          {
+            "node": "5b6c7d8e-9f0g-1h2i-3j4k-5l6m7n8o9p0q",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveDataExecution": "all",
+    "saveManualExecution": true,
+    "callerPolicy": "owner"
+  },
+  "staticData": null,
+  "pinData": null,
+  "versionId": "1"
+}

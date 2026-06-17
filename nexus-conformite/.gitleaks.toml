@@ -1,0 +1,60 @@
+# ============================================================
+# NEXUS CONFORMITÉ — Configuration Gitleaks
+# Scan automatique des secrets avant chaque commit
+# Installation : winget install Gitleaks
+# Usage : gitleaks detect --source=. --verbose
+# ============================================================
+
+title = "NEXUS Conformité Gitleaks Config"
+
+[extend]
+useDefault = true
+
+# ─── Règles personnalisées NEXUS ─────────────────────────────
+
+[[rules]]
+id = "nexus-n8n-basic-auth"
+description = "N8N Basic Auth Password"
+regex = '''N8N_BASIC_AUTH_PASSWORD\s*=\s*[^\s]+'''
+keywords = ["N8N_BASIC_AUTH_PASSWORD"]
+entropy = 0
+
+[[rules]]
+id = "nexus-n8n-encryption-key"
+description = "N8N Encryption Key"
+regex = '''N8N_ENCRYPTION_KEY\s*=\s*[^\s]+'''
+keywords = ["N8N_ENCRYPTION_KEY"]
+entropy = 0
+
+[[rules]]
+id = "nexus-brevo-smtp-key"
+description = "Brevo SMTP Key"
+regex = '''xsmtpsib-[a-f0-9]{64}-[a-zA-Z0-9]+'''
+keywords = ["xsmtpsib"]
+
+[[rules]]
+id = "nexus-telegram-bot-token"
+description = "Telegram Bot Token"
+regex = '''\d{8,10}:[A-Za-z0-9_-]{35}'''
+keywords = ["TELEGRAM_BOT_TOKEN", "accessToken"]
+
+[[rules]]
+id = "nexus-beehiiv-api-key"
+description = "Beehiiv API Key"
+regex = '''BEEHIIV_API_KEY\s*=\s*[A-Za-z0-9]{30,}'''
+keywords = ["BEEHIIV_API_KEY"]
+
+[[rules]]
+id = "nexus-gemini-api-key"
+description = "Google Gemini API Key"
+regex = '''AIzaSy[A-Za-z0-9_-]{33}'''
+keywords = ["AIzaSy"]
+
+# ─── Fichiers exclus du scan (templates/exemples) ────────────
+
+[allowlist]
+paths = [
+  '''.env\.example$''',
+  '''credentials-template\.json$''',
+  '''\.gitleaks\.toml$''',
+]

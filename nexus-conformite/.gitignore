@@ -1,0 +1,81 @@
+# ============================================================
+# NEXUS CONFORMITÉ — .gitignore
+# Généré par audit DevSecOps le 30/03/2026
+# ============================================================
+
+# ─── SECRETS & ENVIRONNEMENT ─────────────────────────────────
+# CRITIQUE : ne JAMAIS committer de fichiers contenant des secrets
+.env
+.env.*
+!.env.example
+*.env
+secrets.txt
+credentials.json
+service-account*.json
+
+# ─── N8N ─────────────────────────────────────────────────────
+# Données locales N8N (base SQLite, credentials chiffrés)
+.n8n/
+.n8n-nexus/
+n8n-local/
+NEXUS-N8N/n8n-local/
+
+# ─── NODE.JS ─────────────────────────────────────────────────
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── LOGS & DUMPS ────────────────────────────────────────────
+*.log
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+
+# ─── OS & IDE ────────────────────────────────────────────────
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+*.swp
+*.swo
+*.swn
+
+# IDEs
+.idea/
+.vscode/
+*.code-workspace
+.cursor/
+.gemini/
+
+# ─── FICHIERS TEMPORAIRES ────────────────────────────────────
+*.tmp
+*.bak
+*.orig
+
+# ─── GIT NESTED ──────────────────────────────────────────────
+# Le starter kit a son propre .git — exclure sauf si contribuer upstream
+N8N/self-hosted-ai-starter-kit/.git/
+
+# ─── DOCUMENTS SENSIBLES (SESSION LOGS) ──────────────────────
+# Contient des mots de passe, clés API, et données de debug
+SESSION-LOG.md
+NEXUS-Point-Lendemain.docx
+
+# ─── FICHIERS VOLUMINEUX BINAIRES ─────────────────────────────
+# (optionnel — exclure si le repo doit rester léger)
+# *.docx
+# *.pptx
+# *.odt

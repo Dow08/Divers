@@ -1,0 +1,172 @@
+{
+  "name": "WF-04 — Alertes Revenus Temps Réel",
+  "nodes": [
+    {
+      "parameters": {
+        "events": [
+          "customer.subscription.created",
+          "invoice.payment_succeeded",
+          "payment_intent.succeeded"
+        ]
+      },
+      "id": "stripe-webhook",
+      "name": "Webhook — Stripe",
+      "type": "n8n-nodes-base.stripeTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "credentials": {
+        "stripeApi": {
+          "id": "stripe-api-creds",
+          "name": "Stripe NEXUS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = $input.first().json;\nconst type = event.type || 'unknown';\nconst data = event.data?.object || {};\n\nlet montant = 0, source = 'Inconnu', description = '';\n\nif (type === 'payment_intent.succeeded') {\n  montant = (data.amount / 100).toFixed(2);\n  source = data.metadata?.source || 'Direct';\n  description = data.description || 'Paiement';\n} else if (type === 'customer.subscription.created') {\n  montant = (data.plan?.amount / 100).toFixed(2);\n  source = 'Abonnement ' + (data.plan?.nickname || 'Annuaire/Veille');\n  description = 'Nouvel abonné';\n} else if (type === 'invoice.payment_succeeded') {\n  montant = (data.amount_paid / 100).toFixed(2);\n  source = 'Renouvellement abonnement';\n  description = data.customer_name || '';\n}\n\nconst emoji = montant > 100 ? '🎉' : '💰';\nreturn [{ json: { type, montant, source, description, emoji, timestamp: new Date().toLocaleString('fr-FR') } }];"
+      },
+      "id": "parse-stripe-event",
+      "name": "Parser événement Stripe",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "={{ $json.emoji }} *NOUVEAU REVENU NEXUS*\n\n💶 *Montant :* {{ $json.montant }}€\n📌 *Source :* {{ $json.source }}\n📝 *Type :* {{ $json.description }}\n🕐 *Heure :* {{ $json.timestamp }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-revenue",
+      "name": "Telegram — Alerte revenu",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        200
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-creds",
+          "name": "NEXUS Bot Telegram"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.GOOGLE_SHEETS_ID }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Revenus"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false
+            },
+            {
+              "id": "montant",
+              "displayName": "Montant (€)",
+              "required": false,
+              "defaultMatch": false
+            },
+            {
+              "id": "source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false
+            },
+            {
+              "id": "type",
+              "displayName": "Type événement",
+              "required": false,
+              "defaultMatch": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sheets-log-revenue",
+      "name": "Google Sheets — Logger revenu",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        680,
+        420
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-creds",
+          "name": "Google Sheets NEXUS"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook — Stripe": {
+      "main": [
+        [
+          {
+            "node": "Parser événement Stripe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser événement Stripe": {
+      "main": [
+        [
+          {
+            "node": "Telegram — Alerte revenu",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets — Logger revenu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "NEXUS"
+    },
+    {
+      "name": "Revenus"
+    },
+    {
+      "name": "Stripe"
+    }
+  ],
+  "meta": {
+    "description": "Webhook Stripe — À chaque paiement reçu (abonnement annuaire, veille MRR, Gumroad, Beehiiv) -> alerte Telegram + log Sheets."
+  }
+}

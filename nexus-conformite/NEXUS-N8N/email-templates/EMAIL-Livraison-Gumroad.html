@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votre kit est prêt à télécharger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #001f4d 0%, #003d7a 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .logo {
+            display: inline-block;
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: #ff8c00;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #001f4d;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .text-block {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .order-info {
+            background-color: #f0f7ff;
+            border-left: 4px solid #ff8c00;
+            padding: 15px;
+            margin: 25px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .order-info strong {
+            color: #001f4d;
+        }
+        .download-box {
+            background-color: #e8f4f8;
+            border: 2px solid #ff8c00;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .download-box h3 {
+            color: #001f4d;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .download-button {
+            display: inline-block;
+            background-color: #ff8c00;
+            color: white;
+            padding: 15px 35px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .download-button:hover {
+            background-color: #e67e00;
+        }
+        .instructions {
+            background-color: #fef9f0;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 25px 0;
+            font-size: 13px;
+        }
+        .instructions h3 {
+            color: #001f4d;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .instruction-item {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .instruction-number {
+            background-color: #ff8c00;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .instruction-text {
+            flex: 1;
+            line-height: 1.5;
+            color: #555;
+        }
+        .support {
+            background-color: #e8f4f8;
+            border: 1px solid #b3d9e8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 25px 0;
+            font-size: 13px;
+            text-align: center;
+        }
+        .support strong {
+            color: #001f4d;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 25px 30px;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer-links {
+            margin-bottom: 15px;
+        }
+        .footer-links a {
+            color: #001f4d;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .company-info {
+            margin-top: 15px;
+            line-height: 1.6;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <table class="container" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); overflow: hidden;">
+        <!-- HEADER -->
+        <tr>
+            <td class="header" style="background: linear-gradient(135deg, #001f4d 0%, #003d7a 100%); color: white; padding: 40px 20px; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
+                <h1 style="font-size: 28px; margin-bottom: 10px; font-weight: bold; color: white;">Votre kit est prêt !</h1>
+                <p style="margin: 0; font-size: 16px;">Téléchargez maintenant</p>
+            </td>
+        </tr>
+
+        <!-- CONTENT -->
+        <tr>
+            <td style="padding: 40px 30px;">
+                <p class="greeting" style="font-size: 18px; color: #001f4d; margin-bottom: 20px; font-weight: bold;">Bonjour,</p>
+
+                <p class="text-block" style="font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px;">
+                    Merci pour votre achat ! Votre kit [NOM_PRODUIT] est maintenant disponible en téléchargement.
+                </p>
+
+                <!-- ORDER INFO -->
+                <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 25px 0;">
+                    <tr>
+                        <td style="background-color: #f0f7ff; border-left: 4px solid #ff8c00; padding: 15px; border-radius: 4px; font-size: 14px;">
+                            <strong style="color: #001f4d;">Produit :</strong> [NOM_PRODUIT]<br>
+                            <strong style="color: #001f4d;">Date d'achat :</strong> [DATE_ACHAT]<br>
+                            <strong style="color: #001f4d;">Montant :</strong> [MONTANT_ACHAT]
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- DOWNLOAD SECTION -->
+                <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #e8f4f8; border: 2px solid #ff8c00; padding: 25px; border-radius: 8px; margin: 25px 0; text-align: center;">
+                    <tr>
+                        <td>
+                            <h3 style="color: #001f4d; font-size: 18px; margin-bottom: 15px;">Cliquez ci-dessous pour télécharger votre kit</h3>
+                            <a href="[LIEN_TELECHARGEMENT]" style="display: inline-block; background-color: #ff8c00; color: white; padding: 15px 35px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; margin: 10px 0;">⬇️ Télécharger le kit</a>
+                            <p style="margin-top: 15px; font-size: 12px; color: #666;">Lien valide pendant 30 jours</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- INSTRUCTIONS -->
+                <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #fef9f0; padding: 20px; border-radius: 4px; margin: 25px 0;">
+                    <tr>
+                        <td>
+                            <h3 style="color: #001f4d; font-size: 16px; margin-bottom: 15px;">💡 Instructions d'utilisation</h3>
+
+                            <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-bottom: 12px;">
+                                <tr>
+                                    <td style="background-color: #ff8c00; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; font-weight: bold; vertical-align: middle; margin-right: 12px;">1</td>
+                                    <td style="font-size: 13px; color: #555; line-height: 1.5;">Téléchargez le fichier en cliquant sur le bouton ci-dessus</td>
+                                </tr>
+                            </table>
+
+                            <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-bottom: 12px;">
+                                <tr>
+                                    <td style="background-color: #ff8c00; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; font-weight: bold; vertical-align: middle; margin-right: 12px;">2</td>
+                                    <td style="font-size: 13px; color: #555; line-height: 1.5;">Décompressez l'archive ZIP sur votre ordinateur</td>
+                                </tr>
+                            </table>
+
+                            <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin-bottom: 12px;">
+                                <tr>
+                                    <td style="background-color: #ff8c00; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; font-weight: bold; vertical-align: middle; margin-right: 12px;">3</td>
+                                    <td style="font-size: 13px; color: #555; line-height: 1.5;">Consultez le fichier README.txt pour les instructions détaillées</td>
+                                </tr>
+                            </table>
+
+                            <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                                <tr>
+                                    <td style="background-color: #ff8c00; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; font-weight: bold; vertical-align: middle; margin-right: 12px;">4</td>
+                                    <td style="font-size: 13px; color: #555; line-height: 1.5;">Intégrez les outils dans votre processus de conformité</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- SUPPORT -->
+                <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; background-color: #e8f4f8; border: 1px solid #b3d9e8; padding: 15px; border-radius: 4px; margin: 25px 0; font-size: 13px; text-align: center;">
+                    <tr>
+                        <td>
+                            <strong style="color: #001f4d; display: block; margin-bottom: 5px;">❓ Des questions sur votre kit ?</strong>
+                            Consultez notre FAQ ou contactez-nous à <a href="mailto:contact@nexusconformite.fr" style="color: #001f4d; text-decoration: none;">contact@nexusconformite.fr</a>
+                        </td>
+                    </tr>
+                </table>
+
+                <p class="text-block" style="font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px;">
+                    Nous vous remercions d'avoir choisi NEXUS CONFORMITÉ. Nous sommes convaincus que ce kit vous sera très utile dans votre parcours de conformité.
+                </p>
+
+                <p class="text-block" style="font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px;">
+                    À bientôt,<br>
+                    <strong style="color: #001f4d;">L'équipe NEXUS CONFORMITÉ</strong>
+                </p>
+            </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+            <td class="footer" style="background-color: #f5f5f5; padding: 25px 30px; font-size: 12px; color: #999; text-align: center; border-top: 1px solid #e0e0e0;">
+                <div class="footer-links" style="margin-bottom: 15px;">
+                    <a href="[LIEN_DESABONNEMENT]" style="color: #001f4d; text-decoration: none; margin: 0 10px;">Me désabonner</a> |
+                    <a href="[LIEN_PREFERENCES]" style="color: #001f4d; text-decoration: none; margin: 0 10px;">Préférences</a> |
+                    <a href="[LIEN_FAQ]" style="color: #001f4d; text-decoration: none; margin: 0 10px;">FAQ</a>
+                </div>
+                <div class="company-info" style="margin-top: 15px; line-height: 1.6; color: #777;">
+                    <strong>NEXUS CONFORMITÉ</strong><br>
+                    Email: contact@nexusconformite.fr<br>
+                    Site: www.nexusconformite.fr<br>
+                    <br>
+                    © 2026 NEXUS CONFORMITÉ. Tous droits réservés.
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
